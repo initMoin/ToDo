@@ -50,6 +50,8 @@ final class NotificationManager: NSObject, ObservableObject {
    @Published private(set) var timeSensitiveSetting: UNNotificationSetting = .notSupported
    @Published private(set) var registrationState: RegistrationState = .idle
    
+   @Published private(set) var currentAPNSToken: String?
+   
    private let center = UNUserNotificationCenter.current()
    private let notificationPrefix = "todo.due."
    private let categoryIdentifier = "TODO_DUE_REMINDER"
@@ -122,10 +124,29 @@ final class NotificationManager: NSObject, ObservableObject {
    func didRegisterForRemoteNotifications(deviceToken: Data) {
       let token = deviceToken.map { String(format: "%02x", $0) }.joined()
       registrationState = .registered(token: token)
-      UserDefaults.standard.set(token, forKey: AppPreferences.Keys.remotePushDeviceToken)
+      
+      let previousToken = UserDefaults.standard.string(
+          forKey: AppPreferences.Keys.remotePushDeviceToken
+      )
+
+      guard previousToken != token else {
+          registrationState = .registered(token: token)
+          currentAPNSToken = token
+          return
+      }
+
+      UserDefaults.standard.set(
+          token,
+          forKey: AppPreferences.Keys.remotePushDeviceToken
+      )
+
+      registrationState = .registered(token: token)
+      currentAPNSToken = token
+
+      print("SYSLOG: APNs Token Updated:", token)
 
       Task {
-         await SupabaseAuthStore.shared.syncCurrentDeviceTokenIfPossible()
+          await SupabaseAuthStore.shared.syncCurrentDeviceTokenIfPossible()
       }
    }
    

@@ -444,7 +444,12 @@ final class SupabaseAuthStore: ObservableObject {
                 .from("device_tokens")
                 .upsert(payload, onConflict: "push_provider,token")
                 .execute()
+           
+           print("SYSLOG: APNs token synced to Supabase")
         } catch {
+            print("SYSLOG: Failed to sync APNs token:")
+            print(error)
+
             lastErrorMessage = error.localizedDescription
         }
     }
