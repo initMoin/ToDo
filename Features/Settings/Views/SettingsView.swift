@@ -19,7 +19,7 @@ struct SettingsView: View {
    @AppStorage(AppPreferences.Keys.appTimeSource) private var appTimeSourceRaw = AppTimeSource.location.rawValue
    @AppStorage(AppPreferences.Keys.locationTimeZoneIdentifier) private var locationTimeZoneIdentifier = AppTimePreferences.appleParkTimeZoneIdentifier
    @AppStorage(AppPreferences.Keys.mirrorSyncDeletesToDeviceOnly) private var mirrorSyncDeletesToDeviceOnly = true
-   
+
    @State private var isShowingDeleteUnusedTagsConfirmation = false
    @State private var isSortMenuExpanded = false
    @State private var isDoneSwipeMenuExpanded = false
@@ -57,7 +57,7 @@ struct SettingsView: View {
          .filter { !$0.isResolved && $0.userID == visibleOwnerUserID }
          .sorted { $0.createdAt > $1.createdAt }
    }
-   
+
    var body: some View {
       ZStack(alignment: .top) {
          ScrollView {
@@ -96,7 +96,7 @@ struct SettingsView: View {
                      }
                      .foregroundStyle(AppColor.textPrimary)
                   }
-                  
+
                   NavigationLink {
                      SyncSettingsView()
                   } label: {
@@ -210,7 +210,7 @@ struct SettingsView: View {
             .padding(.top, 86)
             .padding(.bottom, 24)
          }
-         
+
          pinnedTitleHeader
       }
       .scrollIndicators(.hidden)
@@ -245,7 +245,7 @@ struct SettingsView: View {
          await notificationManager.refreshAuthorizationStatus()
       }
    }
-   
+
    private var madeByBrandView: some View {
       VStack(spacing: 10) {
          VStack(spacing: 2) {
@@ -253,7 +253,7 @@ struct SettingsView: View {
                .font(.appSubtitle(15, relativeTo: .subheadline))
                .foregroundStyle(AppColor.textPrimary)
                .padding(.bottom, 11)
-            
+
             Spacer()
 
             HStack(spacing: 6) {
@@ -289,7 +289,7 @@ struct SettingsView: View {
          }
          .multilineTextAlignment(.center)
          .frame(maxWidth: .infinity)
-         
+
          Spacer()
 
          Text("Designed & developed, with love")
@@ -383,7 +383,7 @@ struct SettingsView: View {
          in: .rect(cornerRadius: 24)
       )
    }
-   
+
    private var archivedToDos: [ToDo] {
       scopedToDos
          .filter(\.isArchived)
@@ -394,7 +394,7 @@ struct SettingsView: View {
       let count = archivedToDos.count
       return count == 1 ? "1 toDo" : "\(count) toDos"
    }
-   
+
    private var unusedTagCount: Int {
       scopedTags.filter { tag in
          !scopedToDos.contains(where: { toDo in
@@ -403,7 +403,7 @@ struct SettingsView: View {
          && !scopedNanoDos.contains(where: { $0.tag?.id == tag.id })
       }.count
    }
-   
+
    private var customTagCount: Int {
       let defaultNames = Set(TagManagementView.defaultTagNames.map { $0.lowercased() })
       return scopedTags.filter { !defaultNames.contains($0.name.lowercased()) }.count
@@ -553,7 +553,7 @@ struct SettingsView: View {
 
       return syncCoordinator.effectiveSyncMode.subtitle
    }
-   
+
    private func resetPreferences() {
       AppPreferences.resetToDefaults()
    }
@@ -780,16 +780,28 @@ struct SettingsView: View {
             .font(.appBody(12, relativeTo: .caption))
             .foregroundStyle(AppColor.textSecondary)
 
-         settingsActionRow(
-            systemName: notificationActionSystemName,
-            title: notificationActionTitle,
-            detail: notificationActionDetail,
-            contentVerticalAlignment: .center
-         ) {
-            handleNotificationAction()
-         }
-      }
-   }
+	         settingsActionRow(
+	            systemName: notificationActionSystemName,
+	            title: notificationActionTitle,
+	            detail: notificationActionDetail,
+	            contentVerticalAlignment: .center
+	         ) {
+	            handleNotificationAction()
+	         }
+
+	         #if DEBUG
+	         NavigationLink {
+	            NotificationDebugView(toDos: scopedToDos)
+	         } label: {
+	            settingsNavigationRow(
+	               "Notification Test Harness",
+	               detail: "Debug only"
+	            )
+	         }
+	         .foregroundStyle(AppColor.textPrimary)
+	         #endif
+	      }
+	   }
 
    private var settingsSortDropdown: some View {
       VStack(alignment: .leading, spacing: 10) {
@@ -1483,8 +1495,129 @@ struct SyncDiagnosticsView: View {
          await syncCoordinator.refreshFromRemote(userID: userID)
          await notificationManager.syncScheduledNotifications()
       }
+	   }
+	}
+
+#if DEBUG
+struct NotificationDebugView: View {
+   @StateObject private var notificationManager = NotificationManager.shared
+   @State private var selectedToDoID: PersistentIdentifier?
+   @State private var statusMessage: String?
+   let toDos: [ToDo]
+
+   private var selectedToDo: ToDo? {
+      guard let selectedToDoID else { return toDos.first }
+      return toDos.first { $0.id == selectedToDoID }
+   }
+
+   var body: some View {
+      ScrollView {
+         VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 8) {
+               Text("Notification Test Harness")
+                  .font(.appTitle(34, relativeTo: .largeTitle))
+                  .foregroundStyle(AppColor.textPrimary)
+
+               Text("Schedules local debug notifications using the same payload fields that remote APNs notifications use for routing.")
+                  .font(.appBody(14, relativeTo: .footnote))
+                  .foregroundStyle(AppColor.textSecondary)
+            }
+
+            if !toDos.isEmpty {
+               VStack(alignment: .leading, spacing: 8) {
+                  Text("Target ToDo")
+                     .font(.appSubtitle(15, relativeTo: .subheadline))
+                     .foregroundStyle(AppColor.secondary)
+
+                  Picker("Target ToDo", selection: $selectedToDoID) {
+                     ForEach(toDos) { toDo in
+                        Text(toDo.task.isEmpty ? "Untitled ToDo" : toDo.task)
+                           .tag(Optional(toDo.id))
+                     }
+                  }
+                  .pickerStyle(.menu)
+               }
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+               Text("Scenarios")
+                  .font(.appSubtitle(15, relativeTo: .subheadline))
+                  .foregroundStyle(AppColor.secondary)
+
+               ForEach(NotificationDebugScenario.allCases) { scenario in
+                  Button {
+                     schedule(scenario)
+                  } label: {
+                     HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                           Text(scenario.title)
+                              .font(.appBodyStrong(15, relativeTo: .subheadline))
+                              .foregroundStyle(AppColor.textPrimary)
+
+                           Text(scenario.body)
+                              .font(.appBody(12, relativeTo: .caption))
+                              .foregroundStyle(AppColor.textSecondary)
+                        }
+
+                        Spacer(minLength: 12)
+
+                        Image(systemName: "bell.badge")
+                           .font(.appBodyStrong(14, relativeTo: .footnote))
+                           .foregroundStyle(AppColor.actionPrimary)
+                     }
+                     .padding(14)
+                     .background(Color.white, in: .rect(cornerRadius: 20))
+                  }
+                  .buttonStyle(.plain)
+               }
+            }
+
+            Button {
+               Task {
+                  await notificationManager.clearDebugNotifications()
+                  statusMessage = "Debug notifications cleared."
+               }
+            } label: {
+               Label("Clear Debug Notifications", systemImage: "bell.slash")
+                  .font(.appBodyStrong(14, relativeTo: .subheadline))
+                  .frame(maxWidth: .infinity)
+                  .padding(.vertical, 12)
+                  .foregroundStyle(AppColor.actionDestructive)
+                  .background(AppColor.actionDestructive.opacity(0.08), in: Capsule())
+            }
+            .buttonStyle(.plain)
+
+            if let statusMessage {
+               Text(statusMessage)
+                  .font(.appBody(12, relativeTo: .caption))
+                  .foregroundStyle(AppColor.textSecondary)
+            }
+         }
+         .padding(16)
+      }
+      .background(AppColor.surface)
+      .appBaseTypography()
+      .appNavigationChrome()
+      .task {
+         selectedToDoID = selectedToDoID ?? toDos.first?.id
+      }
+   }
+
+   private func schedule(_ scenario: NotificationDebugScenario) {
+      Task {
+         do {
+            try await notificationManager.scheduleDebugNotification(
+               scenario: scenario,
+               toDo: selectedToDo
+            )
+            statusMessage = "\(scenario.title) debug notification scheduled."
+         } catch {
+            statusMessage = "Could not schedule \(scenario.title): \(error.localizedDescription)"
+         }
+      }
    }
 }
+#endif
 
 #Preview {
    let container = PreviewSupport.makeModelContainer()

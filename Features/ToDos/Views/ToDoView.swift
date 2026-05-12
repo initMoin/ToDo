@@ -8,7 +8,7 @@ struct ToDoView: View {
       var hasDueDate: Bool
       var dueDate: Date
    }
-   
+
    private struct EditDraftSnapshot: Equatable {
       var task: String
       var notes: String
@@ -25,17 +25,17 @@ struct ToDoView: View {
    }
 
    private static let taskCharacterLimit = 160
-   
+
    enum InteractionContext {
       case pushed
       case sheet
    }
-   
+
    enum Mode {
       case create(preselectedTagID: PersistentIdentifier?)
       case edit(ToDo, context: InteractionContext)
    }
-   
+
    @Environment(\.modelContext) private var context
    @Environment(\.dismiss) private var dismiss
    @EnvironmentObject private var supabaseAuthStore: SupabaseAuthStore
@@ -43,12 +43,12 @@ struct ToDoView: View {
    @Query private var toDos: [ToDo]
    @Query private var nanoDos: [NanoDo]
    @AppStorage(AppPreferences.Keys.tagSortOption) private var tagSortOption = TagSortOption.name.rawValue
-   
+
    private let mode: Mode
    private let onFinish: ((ToDo?) -> Void)?
    private let isInlineOverlayEdit: Bool
    private let onDelete: (() -> Void)?
-   
+
    @State private var task: String
    @State private var notes: String
    @State private var isDone: Bool
@@ -69,7 +69,7 @@ struct ToDoView: View {
    @State private var createNanoDos: [CreateNanoDoDraft]
    @State private var isCreateTaskCommitted: Bool
    @State private var newTagName: String
-   
+
    @State private var isShowingDiscardChangesConfirmation = false
    @State private var isShowingDeleteConfirmation = false
    @State private var isShowingNewNanoDo = false
@@ -80,7 +80,7 @@ struct ToDoView: View {
    @FocusState private var isCreateTaskFieldFocused: Bool
    private let editingToDo: ToDo?
    private let initialCreateSelectedTagIDs: [PersistentIdentifier]
-   
+
    init(
       mode: Mode,
       onFinish: ((ToDo?) -> Void)? = nil,
@@ -173,11 +173,11 @@ struct ToDoView: View {
          ))
       }
    }
-   
+
    var body: some View {
       VStack(spacing: 0) {
          customTitleHeader
-         
+
          ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
                switch mode {
@@ -188,7 +188,7 @@ struct ToDoView: View {
                            .font(.appDisplay(28, relativeTo: .title2))
                            .lineLimit(1...6)
                            .focused($isCreateTaskFieldFocused)
-                        
+
                         Button {
                            handleCreateTitleAction()
                         } label: {
@@ -212,22 +212,22 @@ struct ToDoView: View {
                         .animation(AppAnimation.easeStandard, value: hasEnteredTaskText)
                         .interactionDisabled(isCreateTitleActionDisabled)
                      }
-                     
+
                      taskCharacterCounter
                   }
-                  
+
                   if isCreateExpanded {
                      dueDateSection
-                     
+
                      collapsibleNotesSection
-                     
+
                      collapsibleDetailSection("Tag", isExpanded: $isTagExpanded) {
                         inlineTagEntryRow
-                        
+
                         tagSelectionRepoView
                            .transition(expandTransition)
                      }
-                     
+
                      collapsibleDetailSection("NanoDo", isExpanded: $isNanoDoExpanded) {
                         HStack {
                            Button("Add nanoDo") {
@@ -240,12 +240,12 @@ struct ToDoView: View {
                            }
                            Spacer()
                         }
-                        
+
                         if createNanoDos.isEmpty {
                            Text("No nanoDo yet")
                               .foregroundStyle(AppColor.textSecondary)
                         }
-                        
+
                         VStack(spacing: 10) {
                            ForEach(createNanoDos.indices, id: \.self) { index in
                               createNanoDoRow($createNanoDos[index])
@@ -328,7 +328,7 @@ struct ToDoView: View {
          }
       }
    }
-   
+
    @ViewBuilder
    private var customTitleHeader: some View {
       if isInlineOverlayEdit && !isCreateMode {
@@ -498,26 +498,25 @@ struct ToDoView: View {
          .font(.appDisplay(14, relativeTo: .subheadline))
          .foregroundStyle(AppColor.textSecondary)
    }
-   
+
    @ViewBuilder
    private var dueDateSection: some View {
       VStack(alignment: .leading, spacing: 10) {
          sectionTitle("Due Date")
-         
-         MultiDatePicker("Due Date", selection: dueDateSelectionBinding)
-            .labelsHidden()
-            .frame(maxWidth: .infinity, alignment: .leading)
-         
+
+	         ToDoDueDateCalendar(selection: dueDateCalendarBinding)
+	            .frame(maxWidth: .infinity, alignment: .leading)
+
          HStack(spacing: 10) {
             Image(systemName: "clock")
                .foregroundStyle(hasSelectedDueDate ? AppColor.actionPrimary : AppColor.textSecondary)
-            
+
             Text("Time")
                .font(.appDisplay(15, relativeTo: .subheadline))
                .foregroundStyle(AppColor.textSecondary)
-            
+
             Spacer(minLength: 0)
-            
+
             DatePicker("Time", selection: $dueDate, displayedComponents: .hourAndMinute)
                .labelsHidden()
                .datePickerStyle(.compact)
@@ -656,7 +655,7 @@ struct ToDoView: View {
       .animation(AppAnimation.snappyStandard, value: hasSelectedDueDate)
       .animation(AppAnimation.snappyStandard, value: reminderIntent)
    }
-   
+
    @ViewBuilder
    private var editableExistingToDoContent: some View {
       VStack(alignment: .leading, spacing: 8) {
@@ -665,17 +664,17 @@ struct ToDoView: View {
             .lineLimit(1...6)
          taskCharacterCounter
       }
-      
+
       dueDateSection
-      
+
       collapsibleNotesSection
-      
+
       collapsibleDetailSection("Tag", isExpanded: $isTagExpanded) {
          inlineTagEntryRow
-         
+
          tagSelectionRepoView
       }
-      
+
       if let toDo = editingToDo {
          collapsibleDetailSection("NanoDo", isExpanded: $isNanoDoExpanded) {
             HStack {
@@ -684,7 +683,7 @@ struct ToDoView: View {
                }
                Spacer()
             }
-            
+
             if toDo.nanoDos.isEmpty {
                Text("No nanoDo yet")
                   .foregroundStyle(AppColor.textSecondary)
@@ -693,7 +692,7 @@ struct ToDoView: View {
                   ForEach(toDo.nanoDos) { nanoDo in
                      HStack(alignment: .top, spacing: 10) {
                         NanoDoRowView(nanoDo: nanoDo)
-                        
+
                         Button(role: .destructive) {
                            deleteNanoDo(nanoDo)
                         } label: {
@@ -708,7 +707,7 @@ struct ToDoView: View {
             }
          }
       }
-      
+
       Button {
          isDone.toggle()
       } label: {
@@ -725,7 +724,7 @@ struct ToDoView: View {
       }
       .buttonStyle(.plain)
    }
-   
+
    @ViewBuilder
    private var collapsibleNotesSection: some View {
       VStack(alignment: .leading, spacing: 10) {
@@ -744,7 +743,7 @@ struct ToDoView: View {
             .contentShape(Rectangle())
          }
          .buttonStyle(.plain)
-         
+
          if isNotesExpanded {
             TextField("Add notes to help you complete this toDo.", text: notesBinding, axis: .vertical)
                .lineLimit(4, reservesSpace: true)
@@ -752,7 +751,7 @@ struct ToDoView: View {
          }
       }
    }
-   
+
    private func collapsibleDetailSection<Content: View>(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> Content) -> some View {
       VStack(alignment: .leading, spacing: 10) {
          Button {
@@ -770,14 +769,14 @@ struct ToDoView: View {
             .contentShape(Rectangle())
          }
          .buttonStyle(.plain)
-         
+
          if isExpanded.wrappedValue {
             content()
                .transition(expandTransition)
          }
       }
    }
-   
+
    private var navigationTitleText: String {
       switch mode {
       case .create:
@@ -786,7 +785,7 @@ struct ToDoView: View {
          return "Edit ToDo"
       }
    }
-   
+
    private var isPrimaryActionDisabled: Bool {
       switch mode {
       case .create:
@@ -864,7 +863,7 @@ struct ToDoView: View {
          .interactionDisabled(!hasPendingNewTagName)
       }
    }
-   
+
    @ViewBuilder
    private var tagSelectionRepoView: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -911,7 +910,7 @@ struct ToDoView: View {
       }
       .animation(AppAnimation.tagTransition, value: tagAnimationKey)
    }
-   
+
    private var availableTagPillSelector: some View {
       TagPillFlowLayout(spacing: 8, rowSpacing: 8) {
          ForEach(availableTags) { tag in
@@ -922,7 +921,7 @@ struct ToDoView: View {
       }
       .padding(.vertical, 4)
    }
-   
+
    private enum TagPillStyle {
       case available
       case selectedPrimary
@@ -973,7 +972,7 @@ struct ToDoView: View {
    private var tagAnimationKey: String {
       "\(selectedTags.map(\.name).joined(separator: ","))-\(tagList.count)-\(availableTags.count)"
    }
-   
+
    private var selectedTagIDSet: Set<PersistentIdentifier> {
       Set(selectedTagIDs)
    }
@@ -983,7 +982,7 @@ struct ToDoView: View {
          tagList.first(where: { $0.id == id })
       }
    }
-   
+
    private var availableTags: [Tag] {
       tagList.filter { !selectedTagIDSet.contains($0.id) }
    }
@@ -1003,7 +1002,7 @@ struct ToDoView: View {
          selectedTagIDs.append(tag.id)
       }
    }
-   
+
    private var currentEditSnapshot: EditDraftSnapshot {
       EditDraftSnapshot(
          task: task,
@@ -1020,12 +1019,12 @@ struct ToDoView: View {
          selectedTagIDs: selectedTagIDs
       )
    }
-   
+
    private var hasPendingEditChanges: Bool {
       guard let editStartSnapshot else { return false }
       var current = currentEditSnapshot
       var start = editStartSnapshot
-      
+
       if !current.hasDueDate {
          current.dueDate = .distantPast
          current.reminderIntent = .soft
@@ -1049,7 +1048,7 @@ struct ToDoView: View {
          start.recurrenceMode = .finite
          start.recurrenceCount = 1
       }
-      
+
       return current != start
    }
 
@@ -1062,7 +1061,7 @@ struct ToDoView: View {
       let changedRecurrence = hasDueDate && isRecurring
       return hasTask || hasNotes || isDone || hasDueDate || changedTag || changedReminderIntent || changedRecurrence || !createNanoDos.isEmpty
    }
-   
+
    private func confirmDiscardChanges() {
       dismissComposer()
    }
@@ -1099,7 +1098,7 @@ struct ToDoView: View {
    private var scopedNanoDos: [NanoDo] {
       nanoDos.filter { $0.ownerUserID == visibleOwnerUserID }
    }
-   
+
    private var tagList: [Tag] {
       let option = TagSortOption.resolvedOption(from: tagSortOption)
       let isAscending = TagSortOption.resolvedDirection(
@@ -1133,7 +1132,7 @@ struct ToDoView: View {
          }
       }
    }
-   
+
    private func linkedCount(for tag: Tag) -> Int {
       let toDoCount = scopedToDos.filter { toDo in
          toDo.effectiveTags.contains(where: { $0.id == tag.id })
@@ -1141,7 +1140,7 @@ struct ToDoView: View {
       let nanoDoCount = scopedNanoDos.filter { $0.tag?.id == tag.id }.count
       return toDoCount + nanoDoCount
    }
-   
+
    private var taskBinding: Binding<String> {
       Binding(
          get: { task },
@@ -1157,13 +1156,13 @@ struct ToDoView: View {
          .foregroundStyle(AppColor.textSecondary)
          .frame(maxWidth: .infinity, alignment: .trailing)
    }
-   
+
    private var notesBinding: Binding<String> {
       $notes
    }
-   
-   private var dueDateSelectionBinding: Binding<Set<DateComponents>> {
-      Binding(
+
+	   private var dueDateSelectionBinding: Binding<Set<DateComponents>> {
+	      Binding(
          get: { dueDateSelection },
          set: { newValue in
             guard let selectedComponent = selectedDateComponent(from: newValue) else {
@@ -1186,8 +1185,35 @@ struct ToDoView: View {
                dueDate = nextDate
             }
          }
-      )
-   }
+	      )
+	   }
+
+	   private var dueDateCalendarBinding: Binding<Date?> {
+	      Binding(
+	         get: {
+	            hasSelectedDueDate ? dueDate : nil
+	         },
+	         set: { newValue in
+	            guard let newValue else {
+	               dueDateSelection = []
+	               hasDueDate = false
+	               return
+	            }
+
+	            let calendar = Calendar.current
+	            let selectedDay = Self.selectionComponents(for: newValue)
+	            let time = calendar.dateComponents([.hour, .minute, .second], from: dueDate)
+	            var merged = selectedDay
+	            merged.hour = time.hour
+	            merged.minute = time.minute
+	            merged.second = time.second
+
+	            dueDateSelection = [Self.normalizedSelectionComponents(selectedDay)]
+	            hasDueDate = true
+	            dueDate = calendar.date(from: merged) ?? newValue
+	         }
+	      )
+	   }
 
    private static func selectionComponents(for date: Date) -> DateComponents {
       let calendar = Calendar.current
@@ -1219,33 +1245,33 @@ struct ToDoView: View {
    private var expandTransition: AnyTransition {
       .move(edge: .top).combined(with: .opacity)
    }
-   
+
    private var createTitleActionSymbol: String {
       isCreateTaskCommittedVisual ? "checkmark" : "plus"
    }
-   
+
    private var hasEnteredTaskText: Bool {
       task.unicodeScalars.contains { scalar in
          !Self.ignoredInputScalars.contains(scalar)
       }
    }
-   
+
    private var isCreateTitleActionDisabled: Bool {
       guard case .create = mode else { return false }
       return !hasEnteredTaskText
    }
-   
+
    private static let ignoredInputScalars: CharacterSet = {
       var set = CharacterSet.whitespacesAndNewlines
       set.formUnion(.controlCharacters)
       set.formUnion(CharacterSet(charactersIn: "\u{200B}\u{200C}\u{200D}\u{200E}\u{200F}\u{2060}\u{FE0E}\u{FE0F}\u{FEFF}\u{00AD}"))
       return set
    }()
-   
+
    private var trimmedTaskText: String {
       task.trimmingCharacters(in: .whitespacesAndNewlines)
    }
-   
+
    private func handleCreateTitleAction() {
       guard case .create = mode else { return }
       guard hasEnteredTaskText else { return }
@@ -1259,7 +1285,7 @@ struct ToDoView: View {
          }
       }
    }
-   
+
    private func addTagInline() {
       let normalized = Tag.normalizeName(newTagName)
       guard !normalized.isEmpty else { return }
@@ -1282,14 +1308,14 @@ struct ToDoView: View {
          newTagName = ""
       }
    }
-   
+
    @ViewBuilder
    private func createNanoDoRow(_ nanoDo: Binding<CreateNanoDoDraft>) -> some View {
       HStack(alignment: .top, spacing: 10) {
          TextField("nanoDo task", text: nanoDo.task, axis: .vertical)
             .lineLimit(1...3)
             .font(.appBody(16, relativeTo: .subheadline))
-         
+
          if nanoDo.wrappedValue.hasDueDate {
             DatePicker(
                "",
@@ -1311,7 +1337,7 @@ struct ToDoView: View {
             }
             .buttonStyle(.plain)
          }
-         
+
          Button(role: .destructive) {
             removeCreateNanoDo(id: nanoDo.wrappedValue.id)
          } label: {
@@ -1321,11 +1347,11 @@ struct ToDoView: View {
          .buttonStyle(.plain)
       }
    }
-   
+
    private func removeCreateNanoDo(id: UUID) {
       createNanoDos.removeAll { $0.id == id }
    }
-   
+
    private func save() {
       let trimmedTask = trimmedTaskText
       guard hasEnteredTaskText else { return }
@@ -1341,7 +1367,7 @@ struct ToDoView: View {
       }
       let firstSelectedTag = selectedTags.first
       var savedToDo: ToDo?
-      
+
       switch mode {
       case .create:
          let newToDo = ToDo(
@@ -1362,7 +1388,7 @@ struct ToDoView: View {
          context.insert(newToDo)
          newToDo.setSelectedTags(selectedTags)
          savedToDo = newToDo
-         
+
          if !createNanoDos.isEmpty {
             for createNanoDo in createNanoDos {
                let trimmedNanoDoTask = createNanoDo.task.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1408,10 +1434,10 @@ struct ToDoView: View {
          print("Failed to save ToDo changes: \(error)")
          return
       }
-      
+
       dismissComposer(savedToDo: savedToDo)
    }
-   
+
    private func deleteNanoDo(_ nanoDo: NanoDo) {
       guard let toDo = editingToDo else { return }
       SyncTombstoneStore.recordDelete(
@@ -1477,24 +1503,24 @@ struct ToDoView: View {
          return "\(cadence), for \(label) after the first due moment."
       }
    }
-   
+
 }
 
 private struct TagPillFlowLayout: Layout {
    var spacing: CGFloat
    var rowSpacing: CGFloat
-   
+
    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
       let maxWidth = proposal.width ?? .greatestFiniteMagnitude
       var x: CGFloat = 0
       var y: CGFloat = 0
       var rowHeight: CGFloat = 0
       var usedWidth: CGFloat = 0
-      
+
       for subview in subviews {
          let size = subview.sizeThatFits(.unspecified)
          let nextX = x == 0 ? size.width : x + spacing + size.width
-         
+
          if nextX > maxWidth, x > 0 {
             usedWidth = max(usedWidth, x)
             x = size.width
@@ -1505,17 +1531,17 @@ private struct TagPillFlowLayout: Layout {
             rowHeight = max(rowHeight, size.height)
          }
       }
-      
+
       usedWidth = max(usedWidth, x)
       return CGSize(width: proposal.width ?? usedWidth, height: y + rowHeight)
    }
-   
+
    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
       let maxX = bounds.maxX
       var x = bounds.minX
       var y = bounds.minY
       var rowHeight: CGFloat = 0
-      
+
       for subview in subviews {
          let size = subview.sizeThatFits(.unspecified)
          let needsWrap = x > bounds.minX && (x + spacing + size.width > maxX)
@@ -1526,7 +1552,7 @@ private struct TagPillFlowLayout: Layout {
          } else if x > bounds.minX {
             x += spacing
          }
-         
+
          subview.place(
             at: CGPoint(x: x, y: y),
             proposal: ProposedViewSize(width: size.width, height: size.height)
@@ -1539,7 +1565,7 @@ private struct TagPillFlowLayout: Layout {
 
 private struct NanoDoReadOnlyRowView: View {
    let nanoDo: NanoDo
-   
+
    var body: some View {
       VStack(alignment: .leading, spacing: 4) {
          HStack(spacing: 8) {
@@ -1548,7 +1574,7 @@ private struct NanoDoReadOnlyRowView: View {
             Text(nanoDo.task)
                .foregroundStyle(AppColor.textPrimary)
          }
-         
+
          if let dueDate = nanoDo.dueDate {
             Text(dueDate.formatted(date: .abbreviated, time: .shortened))
                .font(.appBody(12, relativeTo: .caption))
@@ -1558,9 +1584,152 @@ private struct NanoDoReadOnlyRowView: View {
    }
 }
 
+private struct ToDoDueDateCalendar: View {
+   @Binding var selection: Date?
+   @State private var visibleMonth: Date
+
+   private let calendar = Calendar.current
+   private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+
+   init(selection: Binding<Date?>) {
+      _selection = selection
+      _visibleMonth = State(initialValue: Self.monthStart(for: selection.wrappedValue ?? .now))
+   }
+
+   var body: some View {
+      VStack(spacing: 12) {
+         HStack(spacing: 12) {
+            Button {
+               moveMonth(by: -1)
+            } label: {
+               Image(systemName: "chevron.left")
+                  .font(.appBodyStrong(13, relativeTo: .caption))
+                  .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Previous month")
+
+            Text(visibleMonth.formatted(.dateTime.month(.wide).year()))
+               .font(.appDisplay(17, relativeTo: .headline))
+               .foregroundStyle(AppColor.textPrimary)
+               .frame(maxWidth: .infinity)
+
+            Button {
+               moveMonth(by: 1)
+            } label: {
+               Image(systemName: "chevron.right")
+                  .font(.appBodyStrong(13, relativeTo: .caption))
+                  .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Next month")
+         }
+         .foregroundStyle(AppColor.textSecondary)
+
+         LazyVGrid(columns: columns, spacing: 6) {
+            ForEach(weekdaySymbols, id: \.self) { symbol in
+               Text(symbol)
+                  .font(.appBodyStrong(11, relativeTo: .caption2))
+                  .foregroundStyle(AppColor.textSecondary)
+                  .frame(height: 24)
+            }
+
+            ForEach(Array(monthDays.enumerated()), id: \.offset) { _, date in
+               if let date {
+                  dayButton(for: date)
+               } else {
+                  Color.clear
+                     .frame(width: 34, height: 34)
+               }
+            }
+         }
+      }
+      .padding(12)
+      .background(AppColor.surfaceMuted, in: .rect(cornerRadius: 18))
+      .onChange(of: selection) { _, newValue in
+         if let newValue,
+            !calendar.isDate(newValue, equalTo: visibleMonth, toGranularity: .month) {
+            visibleMonth = Self.monthStart(for: newValue)
+         }
+      }
+   }
+
+   private func dayButton(for date: Date) -> some View {
+      let isSelected = selection.map { calendar.isDate($0, inSameDayAs: date) } ?? false
+      let isToday = calendar.isDateInToday(date)
+
+      return Button {
+         withAnimation(AppAnimation.easeFast) {
+            selection = isSelected ? nil : date
+         }
+      } label: {
+         Text(dayNumber(for: date))
+            .font(.appBodyStrong(14, relativeTo: .subheadline))
+            .foregroundStyle(dayTextColor(isSelected: isSelected, isToday: isToday))
+            .frame(width: 34, height: 34)
+            .background {
+               Circle()
+                  .fill(isSelected ? AppColor.main : Color.clear)
+            }
+            .overlay {
+               Circle()
+                  .stroke(isToday && !isSelected ? AppColor.main : Color.clear, lineWidth: 1.5)
+            }
+            .contentShape(Circle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(date.formatted(date: .complete, time: .omitted))
+      .accessibilityAddTraits(isSelected ? .isSelected : [])
+   }
+
+   private var weekdaySymbols: [String] {
+      let symbols = calendar.veryShortStandaloneWeekdaySymbols
+      let firstWeekdayIndex = max(calendar.firstWeekday - 1, 0)
+      return Array(symbols[firstWeekdayIndex...]) + Array(symbols[..<firstWeekdayIndex])
+   }
+
+   private var monthDays: [Date?] {
+      guard let range = calendar.range(of: .day, in: .month, for: visibleMonth),
+            let firstDay = calendar.date(from: calendar.dateComponents([.year, .month], from: visibleMonth)) else {
+         return []
+      }
+
+      let weekday = calendar.component(.weekday, from: firstDay)
+      let leadingEmptyDays = (weekday - calendar.firstWeekday + 7) % 7
+      let dates = range.compactMap { day -> Date? in
+         calendar.date(byAdding: .day, value: day - 1, to: firstDay)
+      }
+
+      return Array(repeating: nil, count: leadingEmptyDays) + dates
+   }
+
+   private func dayNumber(for date: Date) -> String {
+      String(calendar.component(.day, from: date))
+   }
+
+   private func dayTextColor(isSelected: Bool, isToday: Bool) -> Color {
+      if isSelected {
+         return AppColor.textPrimary
+      }
+
+      return isToday ? AppColor.textPrimary : AppColor.textSecondary
+   }
+
+   private func moveMonth(by value: Int) {
+      withAnimation(AppAnimation.easeFast) {
+         visibleMonth = calendar.date(byAdding: .month, value: value, to: visibleMonth) ?? visibleMonth
+      }
+   }
+
+   private static func monthStart(for date: Date) -> Date {
+      let calendar = Calendar.current
+      return calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+   }
+}
+
 private struct NanoDoRowView: View {
    @Bindable var nanoDo: NanoDo
-   
+
    var body: some View {
       VStack(alignment: .leading, spacing: 6) {
          HStack {
@@ -1582,7 +1751,7 @@ private struct NanoDoRowView: View {
                }
             ))
          }
-         
+
          if let dueDate = nanoDo.dueDate {
             DatePicker("Due", selection: Binding(
                get: { dueDate },

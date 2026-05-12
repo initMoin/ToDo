@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum NotificationCategoryID: String {
+enum NotificationCategoryID: String, Sendable {
     case taskReminder
     case recurringReminder
     case collaboration

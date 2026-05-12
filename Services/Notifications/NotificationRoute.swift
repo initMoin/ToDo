@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum NotificationRoute: Equatable {
+enum NotificationRoute: Equatable, Sendable {
 
     case toDo(UUID)
 

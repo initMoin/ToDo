@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct NotificationPayload: Codable {
+struct NotificationPayload: Codable, Sendable {
 
     let schemaVersion: Int
 
@@ -24,7 +24,7 @@ struct NotificationPayload: Codable {
 
     let createdAt: Date
 
-    init(
+    nonisolated init(
         schemaVersion: Int = 1,
         type: RemoteNotificationType,
         title: String,

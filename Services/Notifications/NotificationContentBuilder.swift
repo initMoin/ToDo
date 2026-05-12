@@ -8,125 +8,254 @@
 import Foundation
 import UserNotifications
 
+enum NotificationDebugScenario: String, CaseIterable, Identifiable, Sendable {
+   case dueSoon
+   case overdue
+   case recurring
+   case quiet
+   case timeSensitive
+   case syncRefresh
+
+   var id: String { rawValue }
+
+   var title: String {
+      switch self {
+      case .dueSoon:
+         return "Due Reminder"
+      case .overdue:
+         return "Overdue"
+      case .recurring:
+         return "Recurring"
+      case .quiet:
+         return "Quiet"
+      case .timeSensitive:
+         return "Time-Sensitive"
+      case .syncRefresh:
+         return "Sync Refresh"
+      }
+   }
+
+   var body: String {
+      switch self {
+      case .dueSoon:
+         return "Tests the normal due-reminder notification path."
+      case .overdue:
+         return "Tests urgent overdue reminder copy and metadata."
+      case .recurring:
+         return "Tests recurring reminder copy and metadata."
+      case .quiet:
+         return "Tests a passive notification that should avoid sound."
+      case .timeSensitive:
+         return "Tests a Time Sensitive reminder."
+      case .syncRefresh:
+         return "Tests the silent sync-refresh payload shape."
+      }
+   }
+
+   var notificationType: RemoteNotificationType {
+      switch self {
+      case .dueSoon, .timeSensitive:
+         return .toDoDue
+      case .overdue:
+         return .toDoOverdue
+      case .recurring:
+         return .recurringToDo
+      case .quiet:
+         return .reminder
+      case .syncRefresh:
+         return .syncCompleted
+      }
+   }
+
+   var isRecurring: Bool {
+      self == .recurring
+   }
+
+   var isTimeSensitive: Bool {
+      self == .timeSensitive || self == .overdue
+   }
+}
+
 struct NotificationContentBuilder {
-   
+
    static func content(
       for type: RemoteNotificationType,
       title: String,
       body: String
    ) -> UNMutableNotificationContent {
-      
+
       let content = UNMutableNotificationContent()
-      
+
       content.title = title
       content.body = body
-      
+
       switch type {
-         
+
       case .toDoDue:
          content.categoryIdentifier =
          NotificationCategoryID.taskReminder.rawValue
-         
+
          content.sound = .default
-         
+
          content.interruptionLevel = .timeSensitive
-         
+
          content.threadIdentifier = "todo-reminders"
-         
+
          content.targetContentIdentifier = "todo-due"
-         
+
          content.relevanceScore = 0.9
-         
+
       case .toDoOverdue:
          content.categoryIdentifier =
          NotificationCategoryID.taskReminder.rawValue
-         
+
          content.sound = .default
-         
+
          content.interruptionLevel = .timeSensitive
-         
+
          content.threadIdentifier = "todo-reminders"
-         
+
          content.targetContentIdentifier = "todo-overdue"
-         
+
          content.relevanceScore = 0.9
-         
+
       case .recurringToDo:
          content.categoryIdentifier =
          NotificationCategoryID.recurringReminder.rawValue
-         
+
          content.sound = .default
-         
+
          content.threadIdentifier = "todo-recurring"
-         
+
          content.targetContentIdentifier = "todo-recurring"
-         
+
          content.relevanceScore = 0.7
-         
+
       case .circleInvite:
          content.categoryIdentifier =
          NotificationCategoryID.collaboration.rawValue
-         
+
          content.sound = .default
-         
+
          content.threadIdentifier = "circle-invites"
-         
+
          content.targetContentIdentifier = "circle-invite"
-         
+
          content.relevanceScore = 0.8
-         
+
       case .circleUpdate:
          content.categoryIdentifier =
          NotificationCategoryID.collaboration.rawValue
-         
+
          content.sound = .default
-         
+
          content.threadIdentifier = "circle-updates"
-         
+
          content.targetContentIdentifier = "circle-update"
 
          content.relevanceScore = 0.6
-         
+
       case .syncConflict:
          content.categoryIdentifier =
          NotificationCategoryID.sync.rawValue
-         
+
          content.sound = .default
-         
+
          content.threadIdentifier = "sync-events"
-         
+
          content.targetContentIdentifier = "sync-conflict"
 
          content.relevanceScore = 0.85
-         
+
       case .syncCompleted:
          content.sound = nil
-         
+
          content.threadIdentifier = "sync-events"
-         
+
          content.targetContentIdentifier = "sync-complete"
-         
+
          content.relevanceScore = 0.3
-         
+
       case .reminder:
          content.sound = .default
-         
+
          content.threadIdentifier = "general-reminders"
-         
+
          content.targetContentIdentifier = "general-reminder"
 
          content.relevanceScore = 0.5
-         
+
       case .test:
          content.sound = .default
-         
+
          content.threadIdentifier = "debug-notifications"
-         
+
          content.targetContentIdentifier = "debug-notification"
 
          content.relevanceScore = 0.1
       }
-      
+
+      return content
+   }
+
+   static func debugContent(
+      for scenario: NotificationDebugScenario,
+      toDoTitle: String = "Review ToDo",
+      toDoIdentifier: String? = nil,
+      toDoCloudIdentifier: UUID? = nil
+   ) -> UNMutableNotificationContent {
+      let title: String
+      let body: String
+
+      switch scenario {
+      case .dueSoon:
+         title = "ToDo: due"
+         body = toDoTitle
+      case .overdue:
+         title = "ToDo: overdue"
+         body = toDoTitle
+      case .recurring:
+         title = "ToDo: repeats"
+         body = toDoTitle
+	      case .quiet:
+	         title = "ToDo"
+	         body = toDoTitle
+      case .timeSensitive:
+         title = "Time Sensitive ToDo"
+         body = toDoTitle
+      case .syncRefresh:
+         title = "ToDo Sync"
+         body = "Changes are ready to refresh."
+      }
+
+      let content = content(for: scenario.notificationType, title: title, body: body)
+      var userInfo: [String: Any] = [
+         "schemaVersion": 1,
+         "type": scenario.notificationType.rawValue,
+         "isRecurring": scenario.isRecurring,
+         "isTimeSensitive": scenario.isTimeSensitive,
+         "debugScenario": scenario.rawValue
+      ]
+
+      if let toDoIdentifier {
+         userInfo["todoIdentifier"] = toDoIdentifier
+      }
+
+      if let toDoCloudIdentifier {
+         userInfo["todoCloudIdentifier"] = toDoCloudIdentifier.uuidString
+      }
+
+	      if scenario == .syncRefresh {
+	         userInfo["todoSync"] = "refresh"
+	      }
+
+	      if scenario == .quiet {
+	         content.sound = nil
+	         content.interruptionLevel = .passive
+	      }
+
+	      content.userInfo = userInfo
+
       return content
    }
 }

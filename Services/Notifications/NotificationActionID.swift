@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum NotificationActionID: String {
+enum NotificationActionID: String, Sendable {
     case markDone
     case bump
     case snooze

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum RemoteNotificationType: String, Codable {
+enum RemoteNotificationType: String, Codable, Sendable {
     case toDoDue
     case toDoOverdue
     case recurringToDo
@@ -18,5 +18,4 @@ enum RemoteNotificationType: String, Codable {
     case reminder
     case test
 }
-
 

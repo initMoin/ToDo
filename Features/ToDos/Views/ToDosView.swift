@@ -39,7 +39,7 @@ struct ToDosView: View {
    @State private var inlineEditingToDoID: PersistentIdentifier?
    @State private var composerDetent = PresentationDetent.large//.fraction(0.92)
    @FocusState private var isSearchFieldFocused: Bool
-   
+
    @State private var navigationCoordinator = NavigationCoordinator.shared
 
    var body: some View {
@@ -479,35 +479,34 @@ struct ToDosView: View {
          return "Archived"
       }
    }
-   
+
    private func handleNotificationRoute(
       _ route: NotificationRoute
    ) {
       switch route {
-         
-      case .toDo(let id):
-         
-         selectedToDoID = id
-         
-      case .circle(let id):
-         
-         selectedCircleID = id
-         
-      case .sync:
-         
-         showingSyncView = true
-         
-      case .none:
-         
-         break
-         
-      }
-      
-      navigationCoordinator.notificationRoute = .none
-   }
-   }
 
-   private func regularPanelHeader<Accessory: View>(
+      case .toDo(let id):
+
+         selectedToDoID = id
+
+      case .circle(let id):
+
+         selectedCircleID = id
+
+      case .sync:
+
+         showingSyncView = true
+
+      case .none:
+
+         break
+
+      }
+
+	      navigationCoordinator.notificationRoute = .none
+	   }
+
+	   private func regularPanelHeader<Accessory: View>(
       title: String,
       count: Int,
       subtitle: String,
@@ -2234,7 +2233,7 @@ struct ToDosView: View {
       GeometryReader { proxy in
          let targetWidth = proxy.size.width * (usesRegularWidthLayout ? 0.48 : 0.86)
          let panelWidth = min(max(targetWidth, usesRegularWidthLayout ? 460 : 0), usesRegularWidthLayout ? 560 : 420)
-         
+
          ZStack(alignment: .leading) {
             Color.black
                .opacity(isShowingSettings ? 0.33 : 0)
@@ -2247,7 +2246,7 @@ struct ToDosView: View {
                      closeSettingsPanel()
                   }
                }
-            
+
             if isShowingSettings {
                SettingsView(onClose: closeSettingsPanel)
                   .frame(width: panelWidth)
@@ -2502,14 +2501,20 @@ private struct ToDoRowView: View {
                      nanoDoCountBadge
                   }
 
-                  if toDo.dueDate != nil {
-                     Image(systemName: "calendar")
-                        .accessibilityLabel("Has due date")
-                  }
-               }
-               .font(.appBody(12, relativeTo: .caption))
-               .foregroundStyle(metadataColor)
-            }
+	                  if toDo.dueDate != nil {
+	                     Image(systemName: "calendar")
+	                        .accessibilityLabel("Has due date")
+	                  }
+
+	                  if isTimeSensitiveReminder {
+	                     Image(systemName: "clock.fill")
+	                        .foregroundStyle(timeSensitiveIndicatorColor)
+	                        .accessibilityLabel("Time-sensitive reminder")
+	                  }
+	               }
+	               .font(.appBody(12, relativeTo: .caption))
+	               .foregroundStyle(metadataColor)
+	            }
          }
       }
    }
@@ -2658,9 +2663,13 @@ private struct ToDoRowView: View {
       return AppColor.white
    }
 
-   private var syncConflictColor: Color {
-      isOverdueStylingActive ? overdueAccentColor : AppColor.secondary
-   }
+	   private var syncConflictColor: Color {
+	      isOverdueStylingActive ? overdueAccentColor : AppColor.secondary
+	   }
+
+	   private var timeSensitiveIndicatorColor: Color {
+	      isOverdueStylingActive ? AppColor.white : AppColor.actionDestructive
+	   }
 
    private var rowBackgroundColor: Color {
       if isSelectionMode && isSelected {
@@ -2745,9 +2754,13 @@ private struct ToDoRowView: View {
       return showsCompletedState ? AppColor.actionPrimary : AppColor.textSecondary
    }
 
-   private var hasMetadata: Bool {
-      toDo.dueDate != nil || !toDo.nanoDos.isEmpty
-   }
+	   private var hasMetadata: Bool {
+	      toDo.dueDate != nil || !toDo.nanoDos.isEmpty || isTimeSensitiveReminder
+	   }
+
+	   private var isTimeSensitiveReminder: Bool {
+	      toDo.reminderIntent == .timeSensitive
+	   }
 
    private var trimmedNotes: String {
       toDo.notes.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2900,7 +2913,7 @@ private enum PreviewContainerFactory {
          dueDate: Calendar.current.date(byAdding: .day, value: 2, to: .now),
          tags: [work]
       )
-      
+
       let reset = ToDo(
          task: "Reset home inbox",
          dueDate: Calendar.current.date(byAdding: .day, value: 1, to: .now),
