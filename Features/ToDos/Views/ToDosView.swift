@@ -489,30 +489,6 @@ struct ToDosView: View {
       _ route: NotificationRoute
    ) {
       switch route {
-<<<<<<< Updated upstream
-=======
-
-      case .toDo(let id):
-
-         selectedToDoID = id
-
-      case .circle(let id):
-
-         selectedCircleID = id
-
-      case .sync:
-
-         showingSyncView = true
-
-      case .none:
-
-         break
-
-      }
-
-      navigationCoordinator.notificationRoute = .none
-   }
->>>>>>> Stashed changes
 
       case .toDo(let id):
 
@@ -2629,22 +2605,6 @@ private struct ToDoRowView: View {
                      nanoDoCountBadge
                   }
 
-<<<<<<< Updated upstream
-	                  if toDo.dueDate != nil {
-	                     Image(systemName: "calendar")
-	                        .accessibilityLabel("Has due date")
-	                  }
-
-	                  if isTimeSensitiveReminder {
-	                     Image(systemName: "clock.fill")
-	                        .foregroundStyle(timeSensitiveIndicatorColor)
-	                        .accessibilityLabel("Time-sensitive reminder")
-	                  }
-	               }
-	               .font(.appBody(12, relativeTo: .caption))
-	               .foregroundStyle(metadataColor)
-	            }
-=======
                   if toDo.dueDate != nil {
                      Image(systemName: "calendar")
                         .accessibilityLabel("Has due date")
@@ -2659,7 +2619,6 @@ private struct ToDoRowView: View {
                .font(.appBody(12, relativeTo: .caption))
                .foregroundStyle(metadataColor)
             }
->>>>>>> Stashed changes
          }
       }
    }
@@ -2912,15 +2871,6 @@ private struct ToDoRowView: View {
       return showsCompletedState ? AppColor.actionPrimary : AppColor.textSecondary
    }
 
-<<<<<<< Updated upstream
-	   private var hasMetadata: Bool {
-	      toDo.dueDate != nil || !toDo.nanoDos.isEmpty || isTimeSensitiveReminder
-	   }
-
-	   private var isTimeSensitiveReminder: Bool {
-	      toDo.reminderIntent == .timeSensitive
-	   }
-=======
    private var hasMetadata: Bool {
       toDo.dueDate != nil || !toDo.nanoDos.isEmpty || isTimeSensitiveReminder
    }
@@ -2928,7 +2878,6 @@ private struct ToDoRowView: View {
    private var isTimeSensitiveReminder: Bool {
       toDo.reminderIntent == .timeSensitive
    }
->>>>>>> Stashed changes
 
    private var trimmedNotes: String {
       toDo.notes.trimmingCharacters(in: .whitespacesAndNewlines)

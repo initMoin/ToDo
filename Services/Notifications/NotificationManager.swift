@@ -222,31 +222,6 @@ final class NotificationManager: NSObject, ObservableObject {
    }
 
    private func isRemoteSyncRefreshPayload(_ userInfo: [AnyHashable: Any]) -> Bool {
-<<<<<<< Updated upstream
-	      let candidates = [
-	         userInfo["todoSync"] as? String,
-	         userInfo["todo_sync_event"] as? String,
-	         userInfo["syncEvent"] as? String
-	      ]
-
-	      if candidates.contains(where: { value in
-	         guard let normalized = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-	               !normalized.isEmpty else {
-	            return false
-	         }
-	         return normalized == "refresh" || normalized == "changed" || normalized == "pull"
-	      }) {
-	         return true
-	      }
-
-	      if let typeRaw = userInfo["type"] as? String,
-	         let type = RemoteNotificationType(rawValue: typeRaw) {
-	         return type == .syncCompleted || type == .syncConflict
-	      }
-
-	      return false
-	   }
-=======
       let candidates = [
          userInfo["todoSync"] as? String,
          userInfo["todo_sync_event"] as? String,
@@ -270,7 +245,6 @@ final class NotificationManager: NSObject, ObservableObject {
 
       return false
    }
->>>>>>> Stashed changes
 
    func syncScheduledNotifications() async {
       guard let container = modelContainer else { return }
@@ -307,37 +281,6 @@ final class NotificationManager: NSObject, ObservableObject {
             center.removeDeliveredNotifications(withIdentifiers: existingIdentifiers)
          }
 
-<<<<<<< Updated upstream
-	         for occurrence in schedulableOccurrences {
-	            let notificationType = notificationType(
-	               for: occurrence.toDo,
-	               fireDate: occurrence.fireDate
-	            )
-	            let content = UNMutableNotificationContent()
-	            content.title = notificationTitle(for: occurrence.toDo, fireDate: occurrence.fireDate)
-	            content.body = occurrence.toDo.task
-	            content.sound = notificationSound(for: occurrence.toDo)
-	            content.categoryIdentifier = categoryIdentifier
-	            content.interruptionLevel = interruptionLevel(for: occurrence.toDo)
-	            content.relevanceScore = relevanceScore(for: occurrence.toDo)
-
-	            var userInfo: [String: Any] = [
-	               "schemaVersion": 1,
-	               "type": notificationType.rawValue,
-	               "todoIdentifier": persistentIdentifierString(for: occurrence.toDo),
-	               "isRecurring": occurrence.toDo.isRecurring,
-	               "isTimeSensitive": occurrence.toDo.reminderIntent == .timeSensitive,
-	               "occurrenceIndex": occurrence.occurrenceIndex
-	            ]
-
-	            if let cloudID = occurrence.toDo.cloudID {
-	               userInfo["todoCloudIdentifier"] = cloudID.uuidString
-	            }
-
-	            content.userInfo = userInfo
-
-	            let triggerDate = Calendar.current.dateComponents(
-=======
          for occurrence in schedulableOccurrences {
             let notificationType = notificationType(
                for: occurrence.toDo,
@@ -369,7 +312,6 @@ final class NotificationManager: NSObject, ObservableObject {
             content.userInfo = userInfo
 
             let triggerDate = Calendar.current.dateComponents(
->>>>>>> Stashed changes
                [.year, .month, .day, .hour, .minute, .second],
                from: occurrence.fireDate
             )
@@ -387,41 +329,6 @@ final class NotificationManager: NSObject, ObservableObject {
       }
    }
 
-<<<<<<< Updated upstream
-	   private func registerNotificationCategories() {
-	      let legacyCategory = UNNotificationCategory(
-	         identifier: categoryIdentifier,
-	         actions: [markDoneAction()] + snoozeActions(),
-	         intentIdentifiers: [],
-	         options: [.customDismissAction]
-	      )
-	      let taskReminderCategory = UNNotificationCategory(
-	         identifier: NotificationCategoryID.taskReminder.rawValue,
-	         actions: [markDoneAction()] + snoozeActions(),
-	         intentIdentifiers: [],
-	         options: [.customDismissAction]
-	      )
-	      let recurringReminderCategory = UNNotificationCategory(
-	         identifier: NotificationCategoryID.recurringReminder.rawValue,
-	         actions: [markDoneAction()] + snoozeActions(),
-	         intentIdentifiers: [],
-	         options: [.customDismissAction]
-	      )
-	      let syncCategory = UNNotificationCategory(
-	         identifier: NotificationCategoryID.sync.rawValue,
-	         actions: [],
-	         intentIdentifiers: [],
-	         options: []
-	      )
-
-	      center.setNotificationCategories([
-	         legacyCategory,
-	         taskReminderCategory,
-	         recurringReminderCategory,
-	         syncCategory
-	      ])
-	   }
-=======
    private func registerNotificationCategories() {
       let legacyCategory = UNNotificationCategory(
          identifier: categoryIdentifier,
@@ -455,7 +362,6 @@ final class NotificationManager: NSObject, ObservableObject {
          syncCategory
       ])
    }
->>>>>>> Stashed changes
 
    private func markDoneAction() -> UNNotificationAction {
       UNNotificationAction(
@@ -519,14 +425,11 @@ final class NotificationManager: NSObject, ObservableObject {
       }
    }
 
-<<<<<<< Updated upstream
-=======
    private func notificationBody(for toDo: ToDo) -> String {
       let task = toDo.task.trimmingCharacters(in: .whitespacesAndNewlines)
       return task.isEmpty ? "Open ToDo to review this reminder." : task
    }
 
->>>>>>> Stashed changes
    private func interruptionLevel(for toDo: ToDo) -> UNNotificationInterruptionLevel {
       switch toDo.reminderIntent {
       case .soft:
@@ -540,83 +443,6 @@ final class NotificationManager: NSObject, ObservableObject {
       }
    }
 
-<<<<<<< Updated upstream
-   private func notificationSound(for toDo: ToDo) -> UNNotificationSound? {
-      switch toDo.reminderIntent {
-      case .soft:
-         return nil
-      case .due, .timeSensitive:
-         return .default
-      }
-   }
-
-	   private func relevanceScore(for toDo: ToDo) -> Double {
-      switch toDo.reminderIntent {
-      case .soft:
-         return 0.35
-      case .due:
-         return 0.7
-      case .timeSensitive:
-         return 1.0
-	      }
-	   }
-
-	   private func notificationType(for toDo: ToDo, fireDate: Date) -> RemoteNotificationType {
-	      if fireDate < .now {
-	         return .toDoOverdue
-	      }
-
-	      if toDo.isRecurring {
-	         return .recurringToDo
-	      }
-
-	      return toDo.reminderIntent == .soft ? .reminder : .toDoDue
-	   }
-
-	   private func persistentIdentifierString(for toDo: ToDo) -> String {
-	      String(describing: toDo.id)
-	   }
-
-	   #if DEBUG
-	   func scheduleDebugNotification(
-	      scenario: NotificationDebugScenario,
-	      toDo: ToDo?,
-	      after seconds: TimeInterval = 5
-	   ) async throws {
-	      let toDoTitle = toDo?.task.trimmingCharacters(in: .whitespacesAndNewlines)
-	      let content = NotificationContentBuilder.debugContent(
-	         for: scenario,
-	         toDoTitle: toDoTitle?.isEmpty == false ? toDoTitle! : "Review ToDo",
-	         toDoIdentifier: toDo.map(persistentIdentifierString(for:)),
-	         toDoCloudIdentifier: toDo?.cloudID
-	      )
-
-	      let trigger = UNTimeIntervalNotificationTrigger(
-	         timeInterval: max(seconds, 1),
-	         repeats: false
-	      )
-	      let request = UNNotificationRequest(
-	         identifier: "todo.debug.\(scenario.rawValue).\(UUID().uuidString)",
-	         content: content,
-	         trigger: trigger
-	      )
-
-	      try await center.add(request)
-	   }
-
-	   func clearDebugNotifications() async {
-	      let pendingIdentifiers = await center.pendingNotificationRequests()
-	         .map(\.identifier)
-	         .filter { $0.hasPrefix("todo.debug.") }
-	      let deliveredIdentifiers = await center.deliveredNotifications()
-	         .map { $0.request.identifier }
-	         .filter { $0.hasPrefix("todo.debug.") }
-
-	      center.removePendingNotificationRequests(withIdentifiers: pendingIdentifiers)
-	      center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
-	   }
-	   #endif
-=======
    private func notificationType(for toDo: ToDo, fireDate: Date) -> RemoteNotificationType {
       if fireDate < .now {
          return .toDoOverdue
@@ -672,7 +498,6 @@ final class NotificationManager: NSObject, ObservableObject {
       center.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
    }
    #endif
->>>>>>> Stashed changes
 
    private func scheduledNotificationOccurrences(for toDo: ToDo, now: Date, limit: Int = 24) -> [(fireDate: Date, occurrenceIndex: Int)] {
       guard let dueDate = toDo.dueDate else { return [] }
@@ -834,26 +659,6 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
       }
    }
 
-<<<<<<< Updated upstream
-	   nonisolated func userNotificationCenter(
-	      _ center: UNUserNotificationCenter,
-	      didReceive response: UNNotificationResponse
-	   ) async {
-	      let content = response.notification.request.content
-
-	      if response.actionIdentifier == UNNotificationDefaultActionIdentifier,
-	         let payload = NotificationRouter.payload(
-	            from: content.userInfo,
-	            title: content.title,
-	            body: content.body
-	         ) {
-	         await NotificationRouter.shared.route(payload: payload)
-	      }
-
-	      guard let toDoIdentifier = content.userInfo["todoIdentifier"] as? String else {
-	         return
-	      }
-=======
    nonisolated func userNotificationCenter(
       _ center: UNUserNotificationCenter,
       didReceive response: UNNotificationResponse
@@ -872,7 +677,6 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
       guard let toDoIdentifier = content.userInfo["todoIdentifier"] as? String else {
          return
       }
->>>>>>> Stashed changes
 
       await NotificationManager.shared.applyAction(
          identifier: response.actionIdentifier,
