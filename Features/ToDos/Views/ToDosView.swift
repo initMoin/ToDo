@@ -108,11 +108,16 @@ struct ToDosView: View {
          .overlay {
             settingsOverlay
          }
-         .task {
-            guard defaultTagSeedVersion < 1 else { return }
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            seedIfNeeded()
+         .onAppear {
+            if defaultTagSeedVersion < 1 {
+               seedIfNeeded()
+            }
          }
+//         .task {
+//            guard defaultTagSeedVersion < 1 else { return }
+//            try? await Task.sleep(nanoseconds: 600_000_000)
+//            seedIfNeeded()
+//         }
       }
       .tint(AppColor.actionPrimary)
       .appBaseTypography()
@@ -178,8 +183,8 @@ struct ToDosView: View {
          }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-      .background(Color.white, in: .rect(cornerRadius: 30))
-      .shadow(color: AppColor.black.opacity(0.05), radius: 18, x: 0, y: 8)
+      .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 30))
+      .shadow(color: AppColor.shadow, radius: 18, x: 0, y: 8)
    }
 
    private var regularDetailPanel: some View {
@@ -219,8 +224,8 @@ struct ToDosView: View {
          }
       }
       .frame(maxHeight: .infinity, alignment: .top)
-      .background(Color.white, in: .rect(cornerRadius: 30))
-      .shadow(color: AppColor.black.opacity(0.05), radius: 18, x: 0, y: 8)
+      .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 30))
+      .shadow(color: AppColor.shadow, radius: 18, x: 0, y: 8)
       .animation(AppAnimation.snappySection, value: expandedToDoID)
    }
 
@@ -248,7 +253,7 @@ struct ToDosView: View {
                )
                .frame(width: editorWidth, height: editorHeight)
                .clipShape(.rect(cornerRadius: 30))
-               .shadow(color: AppColor.black.opacity(0.16), radius: 34, x: 0, y: 18)
+               .shadow(color: AppColor.shadow, radius: 34, x: 0, y: 18)
                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                .transition(.scale(scale: 0.82).combined(with: .opacity))
             }
@@ -293,10 +298,10 @@ struct ToDosView: View {
                if toDo.isLate {
                   Text("Late")
                      .font(.appBodyStrong(11, relativeTo: .caption))
-                     .foregroundStyle(AppColor.white)
+                     .foregroundStyle(AppColor.onAction)
                      .padding(.horizontal, 9)
                      .padding(.vertical, 5)
-                     .background(Color(red: 180 / 255, green: 0, blue: 0), in: Capsule())
+                     .background(AppColor.actionDestructive, in: Capsule())
                }
             }
          }
@@ -484,6 +489,30 @@ struct ToDosView: View {
       _ route: NotificationRoute
    ) {
       switch route {
+<<<<<<< Updated upstream
+=======
+
+      case .toDo(let id):
+
+         selectedToDoID = id
+
+      case .circle(let id):
+
+         selectedCircleID = id
+
+      case .sync:
+
+         showingSyncView = true
+
+      case .none:
+
+         break
+
+      }
+
+      navigationCoordinator.notificationRoute = .none
+   }
+>>>>>>> Stashed changes
 
       case .toDo(let id):
 
@@ -1217,65 +1246,48 @@ struct ToDosView: View {
 
    private var doneDrawer: some View {
       GeometryReader { proxy in
-      let bottomInset = proxy.safeAreaInsets.bottom
-      let expandedHeight = min(max(proxy.size.height * 0.33, 240), 340)
-      let drawerWidth = doneDrawerWidth(for: proxy.size.width)
+         let bottomInset = proxy.safeAreaInsets.bottom
+         let expandedHeight = min(max(proxy.size.height * 0.33, 240), 340)
+         let fullHeight = expandedHeight + max(bottomInset, 10)
+         let collapsedVisibleHeight = 58 + bottomInset
+         let closedOffset = max(fullHeight - collapsedVisibleHeight, 0)
+         let drawerWidth = doneDrawerWidth(for: proxy.size.width)
 
-      VStack(spacing: 0) {
+         VStack(spacing: 0) {
             Spacer(minLength: 0)
 
             VStack(spacing: 0) {
-               Button {
-                  withAnimation(AppAnimation.snappySection) {
-                     isDoneDrawerExpanded.toggle()
+               doneDrawerHeader(bottomInset: bottomInset)
+                  .gesture(doneDrawerHeaderDragGesture)
+
+               ScrollView {
+                  LazyVStack(alignment: .leading, spacing: 0) {
+                     doneDrawerSections(doneSections)
+
+                     Color.clear
+                        .frame(height: max(bottomInset, 12))
                   }
-               } label: {
-                  doneDrawerHeader(bottomInset: bottomInset)
+                  .frame(maxWidth: contentMaxWidth, alignment: .center)
+                  .frame(maxWidth: .infinity, alignment: .center)
+                  .padding(.horizontal, listHorizontalInset)
+                  .padding(.top, 4)
                }
-               .buttonStyle(.plain)
-
-               if isDoneDrawerExpanded {
-                  Group {
-                     if isRunningInPreview {
-                        ScrollView {
-                           LazyVStack(alignment: .leading, spacing: 0) {
-                              previewToDoSections(doneSections, allowsOpen: true, allowsStateActions: true, showsContextMenu: false)
-
-                              Color.clear
-                                 .frame(height: max(bottomInset, 12))
-                           }
-                           .frame(maxWidth: contentMaxWidth, alignment: .center)
-                           .frame(maxWidth: .infinity, alignment: .center)
-                           .padding(.horizontal, listHorizontalInset)
-                           .padding(.top, 4)
-                        }
-                        .id(doneListIdentity)
-                     } else {
-                        List {
-                           toDoSections(doneSections, allowsOpen: true, allowsStateActions: true, showsContextMenu: false)
-
-                           Color.clear
-                              .frame(height: max(bottomInset, 12))
-                              .listRowSeparator(.hidden)
-                              .listRowBackground(Color.clear)
-                        }
-                        .listStyle(.plain)
-                        .scrollContentBackground(.hidden)
-                        .background(Color.clear)
-                     }
-                  }
-                  .transition(.move(edge: .bottom).combined(with: .opacity))
+               .id(doneListIdentity)
+               .scrollIndicators(.hidden)
+               .opacity(isDoneDrawerExpanded ? 1 : 0)
+               .allowsHitTesting(isDoneDrawerExpanded)
+            }
+            .frame(width: drawerWidth)
+            .frame(height: fullHeight, alignment: .top)
+            .background {
+               if usesRegularWidthLayout {
+                  AppColor.surfaceElevated
+               } else {
+                  Rectangle().fill(.ultraThinMaterial)
                }
             }
-         .frame(width: drawerWidth)
-         .frame(height: isDoneDrawerExpanded ? expandedHeight + max(bottomInset, 10) : 48 + bottomInset, alignment: .top)
-         .background {
-            if !usesRegularWidthLayout {
-               Rectangle().fill(.ultraThinMaterial)
-            }
-         }
-         .clipShape(
-            UnevenRoundedRectangle(
+            .clipShape(
+               UnevenRoundedRectangle(
                   cornerRadii: .init(
                      topLeading: 30,
                      bottomLeading: usesRegularWidthLayout ? 30 : 0,
@@ -1284,20 +1296,73 @@ struct ToDosView: View {
                   ),
                   style: .continuous
                )
-         )
-      }
+            )
+            .offset(y: isDoneDrawerExpanded ? 0 : closedOffset)
+         }
          .frame(maxWidth: .infinity, alignment: .center)
          .ignoresSafeArea(edges: usesRegularWidthLayout ? [] : .bottom)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
       .transition(.move(edge: .bottom).combined(with: .opacity))
       .animation(AppAnimation.snappySection, value: isDoneDrawerExpanded)
-      .animation(AppAnimation.snappySection, value: filteredDoneToDos.map(\.id))
+   }
+
+   private var doneDrawerHeaderDragGesture: some Gesture {
+      DragGesture(minimumDistance: 12)
+         .onEnded { value in
+            let verticalMovement = value.translation.height
+            let horizontalMovement = abs(value.translation.width)
+            guard abs(verticalMovement) > horizontalMovement,
+                  abs(verticalMovement) > 18 else { return }
+
+            withAnimation(AppAnimation.snappySection) {
+               if verticalMovement < 0 {
+                  isDoneDrawerExpanded = true
+               } else {
+                  isDoneDrawerExpanded = false
+               }
+            }
+         }
    }
 
    private func doneDrawerWidth(for containerWidth: CGFloat) -> CGFloat {
       guard usesRegularWidthLayout else { return containerWidth }
       return min(containerWidth - regularDashboardHorizontalPadding * 2, regularDashboardMaxWidth)
+   }
+
+   @ViewBuilder
+   private func doneDrawerSections(_ sections: [ToDoListSection]) -> some View {
+      ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
+         if sortOption.usesSections {
+            sectionHeader(section.title, isFirst: index == 0)
+               .frame(maxWidth: contentMaxWidth, alignment: .center)
+               .frame(maxWidth: .infinity, alignment: .center)
+         }
+
+         doneDrawerRows(section.toDos)
+      }
+   }
+
+   @ViewBuilder
+   private func doneDrawerRows(_ toDos: [ToDo]) -> some View {
+      ForEach(toDos) { toDo in
+         DoneDrawerRowView(
+            toDo: toDo,
+            hasSyncConflict: hasSyncConflict(for: toDo),
+            onOpen: {
+               if usesRegularWidthLayout {
+                  selectToDoForDetail(toDo)
+               } else {
+                  openToDo(toDo)
+               }
+            },
+            onReopen: {
+               updateCompletionState(for: toDo, isDone: false)
+            }
+         )
+         .padding(.horizontal, 0)
+         .padding(.vertical, 3)
+      }
    }
 
    private func doneDrawerHeader(bottomInset: CGFloat) -> some View {
@@ -1331,8 +1396,8 @@ struct ToDosView: View {
       .frame(maxWidth: .infinity, alignment: .center)
       .contentShape(Rectangle())
       .padding(.horizontal, 24)
-      .padding(.top, isDoneDrawerExpanded ? 14 : 8)
-      .padding(.bottom, isDoneDrawerExpanded ? 12 : max(bottomInset, 6))
+      .padding(.top, 8)
+      .padding(.bottom, 8)
    }
 
    private var emptyStateOverlay: some View {
@@ -1496,7 +1561,7 @@ struct ToDosView: View {
 
          ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-               .fill(Color.white)
+               .fill(AppColor.surfaceElevated)
 
             TextField("Search toDos, notes, tags, nanoDos", text: $searchText)
                .textInputAutocapitalization(.never)
@@ -1724,8 +1789,8 @@ struct ToDosView: View {
          }
       case .linked:
          return scopedTags.sorted { lhs, rhs in
-            let leftCount = linkedCount(for: lhs)
-            let rightCount = linkedCount(for: rhs)
+            let leftCount = lhs.linkedTaskCount /*linkedCount(for: lhs)*/
+            let rightCount = rhs.linkedTaskCount /*linkedCount(for: rhs)*/
             if leftCount == rightCount {
                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
@@ -1734,13 +1799,13 @@ struct ToDosView: View {
       }
    }
 
-   private func linkedCount(for tag: Tag) -> Int {
-      let toDoCount = scopedToDos.filter { toDo in
-         toDo.effectiveTags.contains(where: { $0.id == tag.id })
-      }.count
-      let nanoDoCount = tag.allNanoDos.count
-      return toDoCount + nanoDoCount
-   }
+//   private func linkedCount(for tag: Tag) -> Int {
+//      let toDoCount = scopedToDos.filter { toDo in
+//         toDo.effectiveTags.contains(where: { $0.id == tag.id })
+//      }.count
+//      let nanoDoCount = tag.allNanoDos.count
+//      return toDoCount + nanoDoCount
+//   }
 
    private var filteredWorkingToDos: [ToDo] {
       visibleToDos(in: [.active])
@@ -2252,7 +2317,7 @@ struct ToDosView: View {
                   .frame(width: panelWidth)
                   .frame(maxHeight: .infinity)
                   .background(AppColor.surface)
-                  .shadow(color: AppColor.black.opacity(0.14), radius: 14, x: 6, y: 0)
+                  .shadow(color: AppColor.shadow, radius: 14, x: 6, y: 0)
                   .transition(.move(edge: .leading).combined(with: .opacity))
                   .gesture(
                      DragGesture(minimumDistance: 18)
@@ -2382,11 +2447,82 @@ private struct TagSectionKey: Hashable {
    let title: String
 }
 
+private struct DoneDrawerRowView: View {
+   let toDo: ToDo
+   let hasSyncConflict: Bool
+   let onOpen: () -> Void
+   let onReopen: () -> Void
+
+   var body: some View {
+      HStack(alignment: .top, spacing: 12) {
+         Button(action: onReopen) {
+            Image(systemName: "checkmark.circle.fill")
+               .font(.appDisplay(20, relativeTo: .headline))
+               .foregroundStyle(AppColor.actionPrimary)
+               .frame(width: 22, height: 22)
+         }
+         .buttonStyle(.plain)
+         .accessibilityLabel("Mark active")
+
+         Button(action: onOpen) {
+            VStack(alignment: .leading, spacing: 6) {
+               HStack(alignment: .firstTextBaseline, spacing: 8) {
+                  Text(toDo.task)
+                     .font(.appDisplay(20, relativeTo: .headline))
+                     .foregroundStyle(AppColor.textPrimary)
+                     .strikethrough(true, color: AppColor.textPrimary.opacity(0.35))
+                     .frame(maxWidth: .infinity, alignment: .leading)
+
+                  if hasSyncConflict {
+                     Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.appBodyStrong(12, relativeTo: .caption))
+                        .foregroundStyle(AppColor.secondary)
+                        .accessibilityLabel("Sync needs review")
+                  }
+               }
+
+               if hasMetadata {
+                  HStack(spacing: 10) {
+                     if toDo.dueDate != nil {
+                        Image(systemName: "calendar")
+                           .accessibilityLabel("Has due date")
+                     }
+
+                     if !toDo.nanoDos.isEmpty {
+                        Label("\(toDo.nanoDos.count)", systemImage: "smallcircle.filled.circle")
+                           .labelStyle(.titleAndIcon)
+                           .accessibilityLabel("\(toDo.nanoDos.count) nano tasks")
+                     }
+
+                     if toDo.reminderIntent == .timeSensitive {
+                        Image(systemName: "clock.fill")
+                           .foregroundStyle(AppColor.actionDestructive)
+                           .accessibilityLabel("Time-sensitive reminder")
+                     }
+                  }
+                  .font(.appBody(12, relativeTo: .caption))
+                  .foregroundStyle(AppColor.textSecondary)
+               }
+            }
+            .contentShape(Rectangle())
+         }
+         .buttonStyle(.plain)
+      }
+      .padding(.vertical, 9)
+      .padding(.horizontal, 12)
+      .background(AppColor.surfaceMuted.opacity(0.55), in: .rect(cornerRadius: 18))
+      .opacity(0.72)
+   }
+
+   private var hasMetadata: Bool {
+      toDo.dueDate != nil || !toDo.nanoDos.isEmpty || toDo.reminderIntent == .timeSensitive
+   }
+}
+
 private struct ToDoRowView: View {
    @ScaledMetric(relativeTo: .headline) private var leadingCircleSymbolSize: CGFloat = 20
    @State private var titleFirstLineHeight: CGFloat = 0
-   @State private var isOverduePulseActive = false
-   @State private var expandedContentHeight: CGFloat = 0
+//   @State private var expandedContentHeight: CGFloat = 0
 
    let toDo: ToDo
    let allowsCompletionToggle: Bool
@@ -2402,9 +2538,11 @@ private struct ToDoRowView: View {
    let isTransitioningCompletion: Bool
 
    var body: some View {
-      VStack(alignment: .leading, spacing: 8) {
+      // 1. Make the spacing dynamic so it snaps cleanly to 0 when collapsed
+      VStack(alignment: .leading, spacing: 0) {
          primaryRowContent
             .zIndex(1)
+            .padding(.bottom, isExpanded ? 8 : 0)
 
          expandedDetailsContainer
             .zIndex(0)
@@ -2417,21 +2555,11 @@ private struct ToDoRowView: View {
          rowBackgroundColor,
          in: .rect(cornerRadius: 18)
       )
-      .overlay(alignment: .topLeading) {
-         expandedDetailsMeasurement
-      }
       .compositingGroup()
       .animation(AppAnimation.easeFast, value: isSelected)
       .animation(AppAnimation.easeStandard, value: isTransitioningCompletion)
       .animation(AppAnimation.easeStandard, value: showsCompletedState)
       .animation(AppAnimation.snappySection, value: isExpanded)
-      .animation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true), value: isOverduePulseActive)
-      .onAppear {
-         syncOverduePulse()
-      }
-      .onChange(of: toDo.isLate) { _, _ in
-         syncOverduePulse()
-      }
    }
 
    private var primaryRowContent: some View {
@@ -2501,6 +2629,7 @@ private struct ToDoRowView: View {
                      nanoDoCountBadge
                   }
 
+<<<<<<< Updated upstream
 	                  if toDo.dueDate != nil {
 	                     Image(systemName: "calendar")
 	                        .accessibilityLabel("Has due date")
@@ -2515,21 +2644,50 @@ private struct ToDoRowView: View {
 	               .font(.appBody(12, relativeTo: .caption))
 	               .foregroundStyle(metadataColor)
 	            }
+=======
+                  if toDo.dueDate != nil {
+                     Image(systemName: "calendar")
+                        .accessibilityLabel("Has due date")
+                  }
+
+                  if isTimeSensitiveReminder {
+                     Image(systemName: "clock.fill")
+                        .foregroundStyle(timeSensitiveIndicatorColor)
+                        .accessibilityLabel("Time-sensitive reminder")
+                  }
+               }
+               .font(.appBody(12, relativeTo: .caption))
+               .foregroundStyle(metadataColor)
+            }
+>>>>>>> Stashed changes
          }
       }
    }
 
+//   private var expandedDetailsContainer: some View {
+//      Color.clear
+//         .frame(height: isExpanded ? expandedContentHeight : 0)
+//         .overlay(alignment: .top) {
+//            expandedDetails
+//               .offset(y: isExpanded ? 0 : -(expandedContentHeight * 0.16 + 10))
+//               .opacity(isExpanded ? 1 : 0.01)
+//               .frame(height: isExpanded ? expandedContentHeight : 0, alignment: .top)
+//               .clipped()
+//               .allowsHitTesting(isExpanded)
+//         }
+//   }
+
    private var expandedDetailsContainer: some View {
-      Color.clear
-         .frame(height: isExpanded ? expandedContentHeight : 0)
-         .overlay(alignment: .top) {
-            expandedDetails
-               .offset(y: isExpanded ? 0 : -(expandedContentHeight * 0.16 + 10))
-               .opacity(isExpanded ? 1 : 0.01)
-               .frame(height: isExpanded ? expandedContentHeight : 0, alignment: .top)
-               .clipped()
-               .allowsHitTesting(isExpanded)
-         }
+      expandedDetails
+         // Force content to compute full height regardless of container
+         .fixedSize(horizontal: false, vertical: true)
+         .frame(maxWidth: .infinity)
+         // Add a slight upward parallax slide as it collapses
+         .offset(y: isExpanded ? 0 : -15)
+         // Animate the bounding box from natural height (nil) to 0
+         .frame(height: isExpanded ? nil : 0, alignment: .top)
+         .clipped()
+         .opacity(isExpanded ? 1 : 0)
    }
 
    private var expandedDetails: some View {
@@ -2616,20 +2774,20 @@ private struct ToDoRowView: View {
       .contentTransition(.opacity)
    }
 
-   private var expandedDetailsMeasurement: some View {
-      expandedDetails
-         .fixedSize(horizontal: false, vertical: true)
-         .opacity(0.001)
-         .allowsHitTesting(false)
-         .accessibilityHidden(true)
-         .onGeometryChange(for: CGFloat.self) { proxy in
-            proxy.size.height
-         } action: { value in
-            if abs(expandedContentHeight - value) > 0.5 {
-               expandedContentHeight = value
-            }
-         }
-   }
+//   private var expandedDetailsMeasurement: some View {
+//      expandedDetails
+//         .fixedSize(horizontal: false, vertical: true)
+//         .opacity(0.001)
+//         .allowsHitTesting(false)
+//         .accessibilityHidden(true)
+//         .onGeometryChange(for: CGFloat.self) { proxy in
+//            proxy.size.height
+//         } action: { value in
+//            if abs(expandedContentHeight - value) > 0.5 {
+//               expandedContentHeight = value
+//            }
+//         }
+//   }
 
    private var taskTextColor: Color {
       if isDetailSelected {
@@ -2657,7 +2815,7 @@ private struct ToDoRowView: View {
 
    private var tagBackgroundColor: Color {
       if isDetailSelected {
-         return Color.white.opacity(0.5)
+         return AppColor.surfaceElevated.opacity(0.5)
       }
       guard isOverdueStylingActive else { return AppColor.surfaceMuted }
       return AppColor.white
@@ -2671,6 +2829,10 @@ private struct ToDoRowView: View {
 	      isOverdueStylingActive ? AppColor.white : AppColor.actionDestructive
 	   }
 
+   private var timeSensitiveIndicatorColor: Color {
+      isOverdueStylingActive ? AppColor.white : AppColor.actionDestructive
+   }
+
    private var rowBackgroundColor: Color {
       if isSelectionMode && isSelected {
          return isOverdueStylingActive ? overdueSurfaceColor : AppColor.actionSecondary.opacity(0.1)
@@ -2678,7 +2840,7 @@ private struct ToDoRowView: View {
       if isDetailSelected {
          return AppColor.main
       }
-      return isOverdueStylingActive ? overdueSurfaceColor : Color.white
+      return isOverdueStylingActive ? overdueSurfaceColor : AppColor.surfaceElevated
    }
 
    private var rowOpacity: Double {
@@ -2690,7 +2852,7 @@ private struct ToDoRowView: View {
    }
 
    private var expandedPanelBackground: Color {
-      Color.white
+      AppColor.surfaceElevated
    }
 
    private var expandedActionColor: Color {
@@ -2698,15 +2860,11 @@ private struct ToDoRowView: View {
    }
 
    private var overdueSurfaceColor: Color {
-      let base = Color(red: 180 / 255, green: 0, blue: 0)
-      let emphasized = Color(red: 160 / 255, green: 0, blue: 0)
-      return isOverduePulseActive ? emphasized : base
+      AppColor.actionDestructive
    }
 
-    private var overdueAccentColor: Color {
-      let base = Color(red: 180 / 255, green: 0, blue: 0)
-      let emphasized = Color(red: 160 / 255, green: 0, blue: 0)
-      return isOverduePulseActive ? emphasized : base
+   private var overdueAccentColor: Color {
+      AppColor.actionDestructive
    }
 
    private var isOverdueStylingActive: Bool {
@@ -2754,6 +2912,7 @@ private struct ToDoRowView: View {
       return showsCompletedState ? AppColor.actionPrimary : AppColor.textSecondary
    }
 
+<<<<<<< Updated upstream
 	   private var hasMetadata: Bool {
 	      toDo.dueDate != nil || !toDo.nanoDos.isEmpty || isTimeSensitiveReminder
 	   }
@@ -2761,6 +2920,15 @@ private struct ToDoRowView: View {
 	   private var isTimeSensitiveReminder: Bool {
 	      toDo.reminderIntent == .timeSensitive
 	   }
+=======
+   private var hasMetadata: Bool {
+      toDo.dueDate != nil || !toDo.nanoDos.isEmpty || isTimeSensitiveReminder
+   }
+
+   private var isTimeSensitiveReminder: Bool {
+      toDo.reminderIntent == .timeSensitive
+   }
+>>>>>>> Stashed changes
 
    private var trimmedNotes: String {
       toDo.notes.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2878,16 +3046,6 @@ private struct ToDoRowView: View {
 
    private var expandedValueColor: Color {
       AppColor.textPrimary
-   }
-
-   private func syncOverduePulse() {
-      guard toDo.isLate, !showsCompletedState else {
-         isOverduePulseActive = false
-         return
-      }
-
-      guard !isOverduePulseActive else { return }
-      isOverduePulseActive = true
    }
 }
 

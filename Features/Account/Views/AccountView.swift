@@ -137,7 +137,7 @@ struct AccountView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -187,7 +187,7 @@ struct AccountView: View {
             }
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -262,7 +262,7 @@ struct AccountView: View {
             }
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -278,7 +278,7 @@ struct AccountView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .containerShape(.rect(cornerRadius: 24))
-                .background(Color.white, in: .rect(cornerRadius: 24))
+                .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -523,7 +523,7 @@ struct SyncSettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -542,7 +542,7 @@ struct SyncSettingsView: View {
             }
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -582,7 +582,7 @@ struct SyncSettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .containerShape(.rect(cornerRadius: 24))
-                .background(Color.white, in: .rect(cornerRadius: 24))
+                .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
@@ -1003,14 +1003,14 @@ private struct SyncFeedbackToast: View {
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            Color.white,
+            AppColor.surfaceElevated,
             in: RoundedRectangle(cornerRadius: 20, style: .continuous)
         )
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(accent.opacity(0.18), lineWidth: 1)
         }
-        .shadow(color: Color.black.opacity(0.08), radius: 18, x: 0, y: 10)
+        .shadow(color: AppColor.shadow, radius: 18, x: 0, y: 10)
         .accessibilityElement(children: .combine)
     }
 

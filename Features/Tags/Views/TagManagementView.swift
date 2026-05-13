@@ -57,7 +57,7 @@ struct TagManagementView: View {
             pinnedTitleHeader
         }
         .scrollIndicators(.hidden)
-        .background(Color.white)
+        .background(AppColor.surface)
         .onChange(of: normalizedNewTagName) { _, _ in
             syncDuplicateTagFeedback()
         }
@@ -390,7 +390,7 @@ struct TagManagementView: View {
                 .padding(8)
                 .containerShape(.rect(cornerRadius: 28))
                 .background(
-                    Color.white,
+                    AppColor.surfaceElevated,
                     in: .rect(cornerRadius: 28)
                 )
                 .padding(.horizontal, 12)

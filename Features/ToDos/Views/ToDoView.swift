@@ -179,6 +179,7 @@ struct ToDoView: View {
          customTitleHeader
 
          ScrollView(showsIndicators: false) {
+<<<<<<< Updated upstream
             VStack(alignment: .leading, spacing: 20) {
                switch mode {
                case .create:
@@ -261,6 +262,9 @@ struct ToDoView: View {
             .padding(.horizontal, 16)
             .padding(.top, 14)
             .padding(.bottom, 34)
+=======
+            formContent
+>>>>>>> Stashed changes
          }
          .scrollDismissesKeyboard(.interactively)
          .background(AppColor.surface)
@@ -270,10 +274,9 @@ struct ToDoView: View {
       .appBaseTypography()
       .interactiveDismissDisabled(hasPendingChanges)
       .task {
-         guard case .create = mode, !hasRequestedInitialCreateFocus else { return }
+         guard isCreateMode, !hasRequestedInitialCreateFocus else { return }
          hasRequestedInitialCreateFocus = true
-         try? await Task.sleep(nanoseconds: 75_000_000)
-         guard !Task.isCancelled else { return }
+         await Task.yield()
          isCreateTaskFieldFocused = true
       }
       .onChange(of: task) { _, _ in
@@ -329,6 +332,101 @@ struct ToDoView: View {
       }
    }
 
+<<<<<<< Updated upstream
+=======
+   @ViewBuilder
+   private var formContent: some View {
+      VStack(alignment: .leading, spacing: 20) {
+         switch mode {
+         case .create:
+            VStack(alignment: .leading, spacing: 8) {
+               HStack(alignment: .top, spacing: 12) {
+                  TextField(
+                     "",
+                     text: taskBinding,
+                     prompt: Text("What do you wanna toDo?")
+                        .foregroundStyle(AppColor.textSecondary),
+                     axis: .vertical
+                  )
+                     .font(.appDisplay(28, relativeTo: .title2))
+                     .lineLimit(1...6)
+                     .focused($isCreateTaskFieldFocused)
+
+                  Button {
+                     handleCreateTitleAction()
+                  } label: {
+                     Image(systemName: createTitleActionSymbol)
+                        .font(.appHeadline(18, relativeTo: .headline))
+                        .contentTransition(.symbolEffect(.replace))
+                        .animation(AppAnimation.easeStandard, value: createTitleActionSymbol)
+                        .frame(width: 30, height: 30, alignment: .center)
+                  }
+                  .buttonStyle(.plain)
+                  .foregroundStyle(createEntryActionForeground)
+                  .background(
+                     Circle()
+                        .fill(createEntryActionBackground)
+                  )
+                  .overlay(
+                     Circle()
+                        .stroke(createEntryActionBorder, lineWidth: 1)
+                  )
+                  .animation(AppAnimation.easeStandard, value: isCreateTaskCommitted)
+                  .animation(AppAnimation.easeStandard, value: hasEnteredTaskText)
+                  .interactionDisabled(isCreateTitleActionDisabled)
+               }
+
+               taskCharacterCounter
+            }
+
+            if isCreateExpanded {
+               dueDateSection
+
+               collapsibleNotesSection
+
+               collapsibleDetailSection("Tag", isExpanded: $isTagExpanded) {
+                  inlineTagEntryRow
+
+                  tagSelectionRepoView
+                     .transition(expandTransition)
+               }
+
+               collapsibleDetailSection("NanoDo", isExpanded: $isNanoDoExpanded) {
+                  HStack {
+                     Button("Add nanoDo") {
+                        createNanoDos.append(CreateNanoDoDraft(
+                           id: UUID(),
+                           task: "",
+                           hasDueDate: false,
+                           dueDate: Date()
+                        ))
+                     }
+                     Spacer()
+                  }
+
+                  if createNanoDos.isEmpty {
+                     Text("No nanoDo yet")
+                        .foregroundStyle(AppColor.textSecondary)
+                  }
+
+                  VStack(spacing: 10) {
+                     ForEach(createNanoDos.indices, id: \.self) { index in
+                        createNanoDoRow($createNanoDos[index])
+                     }
+                  }
+               }
+            }
+         case .edit:
+            editableExistingToDoContent
+         }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal, 16)
+      .padding(.top, 14)
+      .padding(.bottom, 34)
+   }
+
+>>>>>>> Stashed changes
    @ViewBuilder
    private var customTitleHeader: some View {
       if isInlineOverlayEdit && !isCreateMode {
@@ -346,18 +444,29 @@ struct ToDoView: View {
                   handleSheetDismissAttempt()
                } label: {
                   Image(systemName: "xmark")
-                     .font(.appDisplay(16, relativeTo: .headline))
+                     .font(.appDisplay(18, relativeTo: .headline))
                      .frame(width: 34, height: 34, alignment: .center)
                }
                .buttonStyle(.plain)
-               .foregroundStyle(AppColor.textSecondary)
+               .foregroundStyle(AppColor.onAction)
+               .background(
+                  Circle()
+                     .fill(AppColor.actionDestructive)
+               )
+               .overlay(
+                  Circle()
+                     .stroke(AppColor.actionDestructive, lineWidth: 1)
+               )
                .accessibilityLabel("Cancel")
             }
 
             VStack(alignment: .leading, spacing: 2) {
-               Text(navigationTitleText)
+//               Text(navigationTitleText)
+//                  .bold()
+//                  .font(.appDisplay(34, relativeTo: .largeTitle))
+//                  .foregroundStyle(AppColor.textPrimary)
+               styledNavigationTitle
                   .font(.appDisplay(34, relativeTo: .largeTitle))
-                  .foregroundStyle(AppColor.textPrimary)
                Text(modeDescription)
                   .font(.appBody(13, relativeTo: .caption))
                   .foregroundStyle(AppColor.textSecondary)
@@ -429,9 +538,8 @@ struct ToDoView: View {
             Spacer(minLength: 0)
 
             VStack(spacing: 2) {
-               Text("Edit ToDo")
+               Text("\(Text("Edit ").foregroundStyle(AppColor.textPrimary.opacity(0.45)))\(Text("ToDo").foregroundStyle(AppColor.textPrimary))")
                   .font(.appDisplay(28, relativeTo: .title2))
-                  .foregroundStyle(AppColor.textPrimary)
                Text("Update the selected item.")
                   .font(.appBody(12, relativeTo: .caption))
                   .foregroundStyle(AppColor.textSecondary)
@@ -504,8 +612,13 @@ struct ToDoView: View {
       VStack(alignment: .leading, spacing: 10) {
          sectionTitle("Due Date")
 
+<<<<<<< Updated upstream
 	         ToDoDueDateCalendar(selection: dueDateCalendarBinding)
 	            .frame(maxWidth: .infinity, alignment: .leading)
+=======
+         ToDoDueDateCalendar(selection: dueDateCalendarBinding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+>>>>>>> Stashed changes
 
          HStack(spacing: 10) {
             Image(systemName: "clock")
@@ -777,6 +890,7 @@ struct ToDoView: View {
       }
    }
 
+<<<<<<< Updated upstream
    private var navigationTitleText: String {
       switch mode {
       case .create:
@@ -784,6 +898,26 @@ struct ToDoView: View {
       case .edit:
          return "Edit ToDo"
       }
+=======
+//   private var navigationTitleText: String {
+//      switch mode {
+//      case .create:
+//         return "New ToDo"
+//      case .edit:
+//         return "Edit ToDo"
+//      }
+//   }
+
+   private var styledNavigationTitle: Text {
+      let prefixText = Text(isCreateMode ? "New " : "Edit ")
+         .foregroundStyle(AppColor.textPrimary.opacity(0.45))
+
+      let suffixText = Text("ToDo")
+         .foregroundStyle(AppColor.textPrimary)
+
+      // Modern SwiftUI: Interpolating styled Text views directly
+      return Text("\(prefixText)\(suffixText)")
+>>>>>>> Stashed changes
    }
 
    private var isPrimaryActionDisabled: Bool {
@@ -1123,8 +1257,8 @@ struct ToDoView: View {
          }
       case .linked:
          return scopedTags.sorted { lhs, rhs in
-            let leftCount = linkedCount(for: lhs)
-            let rightCount = linkedCount(for: rhs)
+            let leftCount = (lhs.toDos?.count ?? 0) + (lhs.primaryToDos?.count ?? 0) + (lhs.nanoDos?.count ?? 0)
+            let rightCount = (rhs.toDos?.count ?? 0) + (rhs.primaryToDos?.count ?? 0) + (rhs.nanoDos?.count ?? 0)
             if leftCount == rightCount {
                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
@@ -1133,6 +1267,7 @@ struct ToDoView: View {
       }
    }
 
+<<<<<<< Updated upstream
    private func linkedCount(for tag: Tag) -> Int {
       let toDoCount = scopedToDos.filter { toDo in
          toDo.effectiveTags.contains(where: { $0.id == tag.id })
@@ -1140,6 +1275,15 @@ struct ToDoView: View {
       let nanoDoCount = scopedNanoDos.filter { $0.tag?.id == tag.id }.count
       return toDoCount + nanoDoCount
    }
+=======
+//   private func linkedCount(for tag: Tag) -> Int {
+//      let toDoCount = scopedToDos.filter { toDo in
+//         toDo.effectiveTags.contains(where: { $0.id == tag.id })
+//      }.count
+//      let nanoDoCount = scopedNanoDos.filter { $0.tag?.id == tag.id }.count
+//      return toDoCount + nanoDoCount
+//   }
+>>>>>>> Stashed changes
 
    private var taskBinding: Binding<String> {
       Binding(
@@ -1161,8 +1305,13 @@ struct ToDoView: View {
       $notes
    }
 
+<<<<<<< Updated upstream
 	   private var dueDateSelectionBinding: Binding<Set<DateComponents>> {
 	      Binding(
+=======
+   private var dueDateSelectionBinding: Binding<Set<DateComponents>> {
+      Binding(
+>>>>>>> Stashed changes
          get: { dueDateSelection },
          set: { newValue in
             guard let selectedComponent = selectedDateComponent(from: newValue) else {
@@ -1214,6 +1363,33 @@ struct ToDoView: View {
 	         }
 	      )
 	   }
+
+   private var dueDateCalendarBinding: Binding<Date?> {
+      Binding(
+         get: {
+            hasSelectedDueDate ? dueDate : nil
+         },
+         set: { newValue in
+            guard let newValue else {
+               dueDateSelection = []
+               hasDueDate = false
+               return
+            }
+
+            let calendar = Calendar.current
+            let selectedDay = Self.selectionComponents(for: newValue)
+            let time = calendar.dateComponents([.hour, .minute, .second], from: dueDate)
+            var merged = selectedDay
+            merged.hour = time.hour
+            merged.minute = time.minute
+            merged.second = time.second
+
+            dueDateSelection = [Self.normalizedSelectionComponents(selectedDay)]
+            hasDueDate = true
+            dueDate = calendar.date(from: merged) ?? newValue
+         }
+      )
+   }
 
    private static func selectionComponents(for date: Date) -> DateComponents {
       let calendar = Calendar.current
@@ -1312,7 +1488,7 @@ struct ToDoView: View {
    @ViewBuilder
    private func createNanoDoRow(_ nanoDo: Binding<CreateNanoDoDraft>) -> some View {
       HStack(alignment: .top, spacing: 10) {
-         TextField("nanoDo task", text: nanoDo.task, axis: .vertical)
+         TextField("What do you wanna nanoDo?", text: nanoDo.task, axis: .vertical)
             .lineLimit(1...3)
             .font(.appBody(16, relativeTo: .subheadline))
 

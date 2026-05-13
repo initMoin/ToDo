@@ -338,7 +338,7 @@ struct SettingsView: View {
          .padding(16)
          .containerShape(.rect(cornerRadius: 24))
          .background(
-            Color.white,
+            AppColor.surfaceElevated,
             in: .rect(cornerRadius: 24)
          )
       }
@@ -379,7 +379,7 @@ struct SettingsView: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .containerShape(.rect(cornerRadius: 24))
       .background(
-         Color.white,
+         AppColor.surfaceElevated,
          in: .rect(cornerRadius: 24)
       )
    }
@@ -985,7 +985,7 @@ struct SettingsView: View {
                   .frame(maxWidth: .infinity, alignment: .leading)
                   .containerShape(.rect(cornerRadius: 18))
                   .background(
-                     (source == resolvedTimeSource ? AppColor.surfaceMuted : Color.white),
+                     (source == resolvedTimeSource ? AppColor.surfaceMuted : AppColor.surfaceElevated),
                      in: .rect(corners: .concentric, isUniform: true)
                   )
                }
@@ -1068,7 +1068,7 @@ struct SettingsView: View {
                   .frame(maxWidth: .infinity, alignment: .leading)
                   .containerShape(.rect(cornerRadius: 18))
                   .background(
-                     (action == resolvedDoneSwipePrimaryAction ? AppColor.surfaceMuted : Color.white),
+                     (action == resolvedDoneSwipePrimaryAction ? AppColor.surfaceMuted : AppColor.surfaceElevated),
                      in: .rect(corners: .concentric, isUniform: true)
                   )
                }
@@ -1173,7 +1173,7 @@ struct SyncConflictReviewView: View {
       }
       .padding(16)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(Color.white, in: .rect(cornerRadius: 24))
+      .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
    }
 
    private func conflictCard(_ conflict: SyncConflict) -> some View {
@@ -1251,7 +1251,7 @@ struct SyncConflictReviewView: View {
          }
       }
       .padding(16)
-      .background(Color.white, in: .rect(cornerRadius: 24))
+      .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
       .overlay {
          RoundedRectangle(cornerRadius: 24, style: .continuous)
             .stroke(AppColor.secondary.opacity(0.18), lineWidth: 1)
@@ -1468,7 +1468,7 @@ struct SyncDiagnosticsView: View {
          }
          .padding(16)
          .frame(maxWidth: .infinity, alignment: .leading)
-         .background(Color.white, in: .rect(cornerRadius: 24))
+         .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
       }
    }
 
@@ -1566,7 +1566,11 @@ struct NotificationDebugView: View {
                            .foregroundStyle(AppColor.actionPrimary)
                      }
                      .padding(14)
+<<<<<<< Updated upstream
                      .background(Color.white, in: .rect(cornerRadius: 20))
+=======
+                     .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 20))
+>>>>>>> Stashed changes
                   }
                   .buttonStyle(.plain)
                }

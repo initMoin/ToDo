@@ -105,7 +105,7 @@ struct ArchivesView: View {
          .padding(16)
          .containerShape(.rect(cornerRadius: 24))
          .background(
-            Color.white,
+            AppColor.surfaceElevated,
             in: .rect(cornerRadius: 24)
          )
       }
@@ -210,7 +210,7 @@ struct ArchivesView: View {
             .padding(8)
             .containerShape(.rect(cornerRadius: 28))
             .background(
-               Color.white,
+               AppColor.surfaceElevated,
                in: .rect(cornerRadius: 28)
             )
             .padding(.horizontal, 12)

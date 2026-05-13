@@ -159,7 +159,7 @@ struct SnoozeOptionsView: View {
          .padding(16)
          .containerShape(.rect(cornerRadius: 24))
          .background(
-            Color.white,
+            AppColor.surfaceElevated,
             in: .rect(cornerRadius: 24)
          )
       }
@@ -215,7 +215,7 @@ private struct SnoozeValueEditorSheet: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-               Color.white,
+               AppColor.surfaceElevated,
                in: .rect(cornerRadius: 18)
             )
             .focused($isFocused)

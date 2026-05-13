@@ -52,6 +52,17 @@ final class Tag {
         set { nanoDos = newValue }
     }
 
+   var linkedTaskCount: Int {
+      // SwiftData automatically maintains these inverse relationship arrays.
+      let uniqueToDoIDs = Set(
+         (toDos ?? []).map(\.id) +
+         (primaryToDos ?? []).map(\.id)
+      )
+      let nanoDoCount = nanoDos?.count ?? 0
+
+      return uniqueToDoIDs.count + nanoDoCount
+   }
+
     static func normalizeName(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }

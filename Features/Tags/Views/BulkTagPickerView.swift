@@ -15,11 +15,13 @@ struct BulkTagPickerView: View {
                 AppLargeScreenTitle(title: "Bulk Tags")
                     .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
 
                 Section("Apply Tag") {
                     if tags.isEmpty {
                         Text("No tags available")
                             .foregroundStyle(AppColor.textSecondary)
+                            .listRowBackground(AppColor.surfaceElevated)
                     } else {
                         ForEach(tags) { tag in
                             Button {
@@ -36,6 +38,7 @@ struct BulkTagPickerView: View {
                                     }
                                 }
                             }
+                            .listRowBackground(AppColor.surfaceElevated)
                         }
                     }
                 }
@@ -45,8 +48,10 @@ struct BulkTagPickerView: View {
                         onClear()
                         dismiss()
                     }
+                    .listRowBackground(AppColor.surfaceElevated)
                 }
             }
+            .appListChrome()
             .tint(AppColor.actionPrimary)
             .appBaseTypography()
             .appNavigationChrome()

@@ -55,11 +55,13 @@ struct NanoDoEditorView: View {
                 AppLargeScreenTitle(title: mode.navigationTitle)
                     .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
 
                 Section("Task") {
                     TextField("Task", text: $task)
                     Toggle("Completed", isOn: $isDone)
                 }
+                .listRowBackground(AppColor.surfaceElevated)
 
                 Section("Due Date") {
                     Toggle("Set due date", isOn: $hasDueDate)
@@ -67,7 +69,9 @@ struct NanoDoEditorView: View {
                         DatePicker("Due", selection: $dueDate, displayedComponents: .date)
                     }
                 }
+                .listRowBackground(AppColor.surfaceElevated)
             }
+            .appListChrome()
             .tint(AppColor.actionPrimary)
             .appBaseTypography()
             .appNavigationChrome()

@@ -31,28 +31,32 @@ enum AppActionIntent {
 }
 
 enum AppColor {
-    // Core palette
-    static let main = Color(red: 233 / 255, green: 167 / 255, blue: 0 / 255)       // #E9A700
-    static let secondary = Color(red: 0 / 255, green: 108 / 255, blue: 231 / 255)   // #006CE7
-    static let white = Color(red: 235 / 255, green: 235 / 255, blue: 235 / 255)     // #EBEBEB
-    static let black = Color(red: 57 / 255, green: 57 / 255, blue: 57 / 255)        // #393939
-    static let tertiary = Color(red: 98 / 255, green: 196 / 255, blue: 0 / 255)     // #62C400
-    static let destructive = Color(red: 212 / 255, green: 0 / 255, blue: 0 / 255)   // #D40000
+    // Raw brand anchors. These remain stable so brand marks and legacy assets do not
+    // invert unexpectedly when the system appearance changes.
+    static let main = Color("appBrandMain")                    // #E9A700 / #FFCC36
+    static let secondary = Color("appBrandSecondary")          // #006CE7 / #67A9FF
+    static let white = Color("brandWhitish")                   // #EBEBEB
+    static let black = Color("brandDarkish")                   // #393939
+    static let tertiary = Color("appBrandTertiary")            // #62C400 / #8FE35B
+    static let destructive = Color("appBrandDestructive")      // #D40000 / #FF6B6B
 
-    static let actionPrimary = black
+    // Semantic app colors. Views should prefer these over raw palette colors.
+    static let actionPrimary = Color("appActionPrimary")
     static let actionSecondary = secondary
     static let actionSuccess = tertiary
     static let actionNeutral = secondary
     static let actionDestructive = destructive
-    static let onAction = white
+    static let onAction = Color("appOnAction")
 
-    static let textPrimary = black
-    static let textSecondary = black.opacity(0.62)
+    static let textPrimary = Color("appTextPrimary")
+    static let textSecondary = Color("appTextSecondary")
 
-    static let surface = white
-    static let surfaceMuted = black.opacity(0.08)
-    static let border = black.opacity(0.22)
-    static let iconCircle = black
+    static let surface = Color("appSurface")
+    static let surfaceElevated = Color("appSurfaceElevated")
+    static let surfaceMuted = Color("appSurfaceMuted")
+    static let border = Color("appBorder")
+    static let iconCircle = actionPrimary
+    static let shadow = Color("appShadow")
 }
 
 enum AppTypography {
@@ -131,6 +135,12 @@ extension View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
+    }
+
+    func appListChrome() -> some View {
+        self
+            .scrollContentBackground(.hidden)
+            .background(AppColor.surface)
     }
 
     func interactionDisabled(_ disabled: Bool) -> some View {

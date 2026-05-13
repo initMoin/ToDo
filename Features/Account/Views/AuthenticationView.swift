@@ -108,7 +108,7 @@ struct AuthenticationView: View {
             }
             .padding(16)
             .containerShape(.rect(cornerRadius: 24))
-            .background(Color.white, in: .rect(cornerRadius: 24))
+            .background(AppColor.surfaceElevated, in: .rect(cornerRadius: 24))
         }
     }
 
